@@ -84,7 +84,7 @@ namespace NetShaper.Analyzers
             context.RegisterSyntaxNodeAction(AnalyzeLiterals, SyntaxKind.NumericLiteralExpression);
 
             context.RegisterSyntaxTreeAction(AnalyzeOneClassPerFile);
-            context.RegisterSyntaxTriviaAction(AnalyzeTrivia, SyntaxKind.SingleLineCommentTrivia, SyntaxKind.MultiLineCommentTrivia);
+            context.RegisterSyntaxTreeAction(AnalyzeTodos);
         }
 
         #region Analyzers
@@ -96,7 +96,21 @@ namespace NetShaper.Analyzers
         private static void AnalyzeInvocation(SyntaxNodeAnalysisContext context) { /*...*/ }
         private static void AnalyzeStringConcatInLoop(SyntaxNodeAnalysisContext context) { /*...*/ }
         private static void AnalyzeEmptyCatch(SyntaxNodeAnalysisContext context) { /*...*/ }
-        private static void AnalyzeTrivia(SyntaxTriviaAnalysisContext context) { /*...*/ }
+        private static void AnalyzeTodos(SyntaxTreeAnalysisContext context) 
+        {
+            var root = context.Tree.GetRoot(context.CancellationToken);
+            var comments = root.DescendantTrivia()
+                .Where(t => t.IsKind(SyntaxKind.SingleLineCommentTrivia) || t.IsKind(SyntaxKind.MultiLineCommentTrivia));
+
+            foreach (var trivia in comments)
+            {
+                string text = trivia.ToString();
+                if (text.Contains("TODO") || text.Contains("FIXME") || text.Contains("HACK"))
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(NoTodos, trivia.GetLocation(), text.Trim()));
+                }
+            }
+        }
         private static void AnalyzeDomainType(SymbolAnalysisContext context, INamedTypeSymbol type) { /*...*/ }
         private static void AnalyzeEntityInEngine(SymbolAnalysisContext context, INamedTypeSymbol type) { /*...*/ }
         private static void AnalyzeDomainEventImmutability(SymbolAnalysisContext context, INamedTypeSymbol type) { /*...*/ }
