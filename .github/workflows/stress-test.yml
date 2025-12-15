@@ -1,0 +1,42 @@
+name: NetShaper Stress Test
+
+# Se ejecuta manual o programado, no en cada push para no saturar
+on: 
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 0' # Semanalmente
+
+jobs:
+  stress-test:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    # WinDivert requiere el DLL y el driver (.sys) junto al ejecutable.
+    # Como el runner está limpio, los descargamos e instalamos manualmente.
+    - name: Download & Setup WinDivert 2.2
+      shell: pwsh
+      run: |
+        $url = "https://github.com/basil00/Divert/releases/download/v2.2.2/WinDivert-2.2.2-A.zip"
+        Invoke-WebRequest -Uri $url -OutFile "wd.zip"
+        Expand-Archive "wd.zip" -DestinationPath "wd"
+        # Copiar las librerías de x64 a la raíz del proyecto StressTest para que el build las copie
+        Copy-Item "wd/WinDivert-2.2.2-A/x64/*" -Destination "NetShaper.StressTest/" -Recurse
+
+    - name: Build StressTest
+      run: dotnet build NetShaper.StressTest/NetShaper.StressTest.csproj -c Release
+
+    # Ejecutamos con argumento "3" para invocar RunChaoticAssaultAsync 
+    # GitHub Actions corre como Administrador por defecto en Windows, necesario para WinDivert.
+    - name: Run Chaotic Assault
+      run: |
+        cd NetShaper.StressTest/bin/Release/net8.0/
+        ./NetShaper.StressTest.exe 6
