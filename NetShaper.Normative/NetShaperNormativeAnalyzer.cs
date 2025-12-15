@@ -83,7 +83,7 @@ namespace NetShaper.Analyzers
         private static void AnalyzeBoxingConversion(OperationAnalysisContext context)
         {
             var conversionOperation = (IConversionOperation)context.Operation;
-            if (!conversionOperation.Conversion.IsBoxing) return;
+            if (!conversionOperation.IsBoxing) return;
 
             var isInEngine = context.Operation.Syntax.FirstAncestorOrSelf<BaseNamespaceDeclarationSyntax>()?.Name.ToString().StartsWith("NetShaper.Engine") ?? false;
             if (!isInEngine) return;
