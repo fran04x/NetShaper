@@ -13,4 +13,8 @@
     <ProjectReference Include="../NetShaper.Normative/NetShaper.Normative.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="Test/ViolationTests.cs" />
+  </ItemGroup>
+
 </Project>
