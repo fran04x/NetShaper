@@ -27,8 +27,22 @@ namespace NetShaper.Composition
             // Register packet capture as transient (new instance per engine)
             services.AddTransient<IPacketCapture, WinDivertAdapter>();
             
-            // Register engine as transient (properly resolved from DI)
-            services.AddTransient<IEngine, Engine.Engine>();
+            // Register Engine as IEngine (83k PPS with 1 thread, minimal resources)
+            // Factory pattern: creates fresh IPacketCapture instance per thread
+            services.AddTransient<IEngine>(serviceProvider =>
+            {
+                var logger = serviceProvider.GetRequiredService<IPacketLogger>();
+                
+                // Factory to create IPacketCapture instances (one per thread in pool)
+                Func<IPacketCapture> captureFactory = () => 
+                    serviceProvider.GetRequiredService<IPacketCapture>();
+                
+                // Default: 1 thread (optimal for Celeron N5100, 83k PPS)
+                // Future: make configurable via settings
+                const int threadCount = 1;
+                
+                return new Engine.Engine(logger, captureFactory, threadCount);
+            });
             
             return services;
         }

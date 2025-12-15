@@ -41,11 +41,18 @@ namespace NetShaper.UI.Controllers
             if (Interlocked.CompareExchange(ref _running, 1, 0) != 0)
                 return StartResult.AlreadyRunning;
 
+            // Dispose old CTS if exists (protection against multiple Start calls)
+            var oldCts = Interlocked.Exchange(ref _linkedCts, null);
+            oldCts?.Dispose();
+
             _linkedCts = CancellationTokenSource.CreateLinkedTokenSource(appToken);
 
             StartResult result = _engine.Start(filter, _linkedCts.Token);
             if (result != StartResult.Success)
             {
+                // Cleanup: dispose CTS in error path to prevent memory leak
+                _linkedCts?.Dispose();
+                _linkedCts = null;
                 CleanupRunningFlag();
                 return result;
             }
@@ -58,7 +65,7 @@ namespace NetShaper.UI.Controllers
                 }
                 finally
                 {
-                    _linkedCts.Cancel(); // fuerza salida del monitor
+                    _linkedCts?.Cancel(); // fuerza salida del monitor
                     CleanupRunningFlag();
                 }
             }, _linkedCts.Token);
@@ -103,20 +110,32 @@ namespace NetShaper.UI.Controllers
 
             while (!ct.IsCancellationRequested)
             {
-                await Task.Delay(1000, ct).ConfigureAwait(false);
+                try
+                {
+                    await Task.Delay(1000, ct).ConfigureAwait(false);
 
-                long current = _engine.PacketCount;
-                long delta = current - last;
+                    long current = _engine.PacketCount;
+                    long delta = current - last;
 
-                _logger.Log(new PacketLogEntry(
-                    Stopwatch.GetTimestamp(),
-                    LogLevel.Info,
-                    LogCode.PacketProcessed,
-                    delta));
+                    _logger.Log(new PacketLogEntry(
+                        Stopwatch.GetTimestamp(),
+                        LogLevel.Info,
+                        LogCode.PacketProcessed,
+                        delta));
 
-                _consoleView.UpdateStats(delta, current);
+                    // Only update console if not cancelled
+                    if (!ct.IsCancellationRequested)
+                    {
+                        _consoleView.UpdateStats(delta, current);
+                    }
 
-                last = current;
+                    last = current;
+                }
+                catch (TaskCanceledException)
+                {
+                    // Expected when stopping
+                    break;
+                }
             }
         }, ct);
     }

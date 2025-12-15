@@ -142,51 +142,6 @@ namespace NetShaper.StressTest
             }
         }
 
-
-        public static async Task RunPerformanceRealAsync()
-        {
-            Console.WriteLine(">>> INICIANDO TEST DE RENDIMIENTO REAL (PPS/JITTER/ZeroAlloc) <<<");
-
-            using var engine = TestServiceFactory.CreateEngine();
-            using var cts = new CancellationTokenSource();
-
-            StartResult result = engine.Start($"outbound and udp.DstPort == {PerformancePort}", cts.Token);
-
-            if (result != StartResult.Success)
-            {
-                Console.WriteLine($"[FAIL] No se pudo iniciar el engine: {result}");
-                return;
-            }
-
-            var captureTask = Task.Factory.StartNew(() =>
-            {
-                try { engine.RunCaptureLoop(); } catch { }
-            }, TaskCreationOptions.LongRunning);
-
-            await WarmupAsync();
-            PrepareGcForMeasurement();
-
-            long memStart = GC.GetTotalMemory(true);
-            int g0Start = GC.CollectionCount(0);
-            long tStart = Stopwatch.GetTimestamp();
-
-            await RunMeasurementTrafficAsync();
-            RunBursts();
-
-            Thread.Sleep(500);
-
-            engine.Stop();
-            cts.Cancel();
-            await captureTask;
-
-            engine.Dispose();
-
-            long tEnd = Stopwatch.GetTimestamp();
-            long memEnd = GC.GetTotalMemory(false);
-            int g0End = GC.CollectionCount(0);
-            PrintPerformanceSummary(engine.PacketCount, memStart, memEnd, g0Start, g0End, tStart, tEnd);
-        }
-
         private static async Task WarmupAsync()
         {
             Console.Write("Calentando... ");

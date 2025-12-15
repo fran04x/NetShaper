@@ -3,87 +3,84 @@ using System.Threading.Tasks;
 
 namespace NetShaper.StressTest
 {
-    class Program
+    internal static class Program
     {
-        static async Task<int> Main(string[] args)
+        private static async Task<int> Main(string[] args)
         {
-            // Support command-line arguments for automation
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
+            Console.Title = "NetShaper Performance Tests";
+
+            // Command line usage: dotnet run [threads|stability]
+            // Example: dotnet run 4
+            // Example: dotnet run stability
             if (args.Length > 0)
             {
-                switch (args[0])
+                if (args[0].ToLowerInvariant() == "stability")
                 {
-                    case "1":
-                        RealTests.RunStabilityReal();
-                        return 0;
-                    case "2":
-                        await RealTests.RunPerformanceRealAsync();
-                        return 0;
-                    case "3":
-                        await ChaoticTests.RunChaoticAssaultAsync();
-                        return 0;
-                    case "4":
-                        await MultiThreadTests.RunMultiThreadPerformanceAsync(1);
-                        return 0;
-                    case "5":
-                        await MultiThreadTests.RunMultiThreadPerformanceAsync(2);
-                        return 0;
-                    case "6":
-                        await MultiThreadTests.RunMultiThreadPerformanceAsync(4);
-                        return 0;
-                    default:
-                        Console.WriteLine($"Invalid argument: {args[0]}");
-                        return 1;
+                    RealTests.RunStabilityReal();
+                    return 0;
+                }
+                else if (int.TryParse(args[0], out int threads) && threads >= 1 && threads <= 16)
+                {
+                    await PerformanceTests.RunPerformanceTestAsync(threads);
+                    return 0;
+                }
+                else
+                {
+                    Console.WriteLine($"Invalid argument: {args[0]}");
+                    Console.WriteLine("Usage: dotnet run [threads|stability]");
+                    Console.WriteLine("  dotnet run 4           - Run with 4 threads");
+                    Console.WriteLine("  dotnet run stability   - Run stability test (10000 cycles)");
+                    return 1;
                 }
             }
 
-            // Interactive menu mode
+            // Interactive mode
             while (true)
             {
                 Console.Clear();
-                Console.WriteLine("=== NETSHAPER STRESS TEST SUITE ===");
-                Console.WriteLine("1. Test de Estabilidad Real (uso correcto)");
-                Console.WriteLine("2. Test de Rendimiento Real (PPS/Jitter/ZeroAlloc)");
-                Console.WriteLine("3. Test Caótico (mal uso extremo)");
-                Console.WriteLine("─────────────────────────────────────");
-                Console.WriteLine("4. Multi-Threading Test (1 thread - baseline)");
-                Console.WriteLine("5. Multi-Threading Test (2 threads)");
-                Console.WriteLine("6. Multi-Threading Test (4 threads)");
-                Console.WriteLine("─────────────────────────────────────");
-                Console.WriteLine("7. Salir");
-                Console.Write("\nSelecciona una opción: ");
-
-                var key = Console.ReadKey(true);
+                Console.WriteLine("════════════════════════════════════════");
+                Console.WriteLine("   NetShaper Performance Test Suite");
+                Console.WriteLine("════════════════════════════════════════");
                 Console.WriteLine();
+                Console.WriteLine("Selecciona un test:");
+                Console.WriteLine();
+                Console.WriteLine("1-16  = Performance Test (N threads)");
+                Console.WriteLine("        1 = Single thread (83k PPS)");
+                Console.WriteLine("        4 = Quad thread (~81k PPS)");
+                Console.WriteLine();
+                Console.WriteLine("S     = Stability Test (10,000 Start/Stop cycles)");
+                Console.WriteLine();
+                Console.WriteLine("0     = Salir");
+                Console.Write("\nOpción: ");
 
-                switch (key.KeyChar)
+                var input = Console.ReadLine()?.Trim();
+                
+                if (input == "0")
+                    return 0;
+
+                if (input?.ToUpperInvariant() == "S")
                 {
-                    case '1':
-                        RealTests.RunStabilityReal();
-                        break;
-                    case '2':
-                        await RealTests.RunPerformanceRealAsync();
-                        break;
-                    case '3':
-                        await ChaoticTests.RunChaoticAssaultAsync();
-                        break;
-                    case '4':
-                        await MultiThreadTests.RunMultiThreadPerformanceAsync(1);
-                        break;
-                    case '5':
-                        await MultiThreadTests.RunMultiThreadPerformanceAsync(2);
-                        break;
-                    case '6':
-                        await MultiThreadTests.RunMultiThreadPerformanceAsync(4);
-                        break;
-                    case '7':
-                        return 0;
-                    default:
-                        Console.WriteLine("Opción no válida.");
-                        break;
+                    Console.WriteLine();
+                    RealTests.RunStabilityReal();
+                    Console.WriteLine();
+                    Console.WriteLine("Presiona cualquier tecla para continuar...");
+                    Console.ReadKey(true);
                 }
-
-                Console.WriteLine("\nPresiona cualquier tecla para volver al menú...");
-                Console.ReadKey();
+                else if (int.TryParse(input, out int threadCount) && threadCount >= 1 && threadCount <= 16)
+                {
+                    Console.WriteLine();
+                    await PerformanceTests.RunPerformanceTestAsync(threadCount);
+                    
+                    Console.WriteLine();
+                    Console.WriteLine("Presiona cualquier tecla para continuar...");
+                    Console.ReadKey(true);
+                }
+                else
+                {
+                    Console.WriteLine("Número inválido. Debe ser entre 1 y 16.");
+                    Console.ReadKey(true);
+                }
             }
         }
     }

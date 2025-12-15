@@ -23,58 +23,103 @@ namespace NetShaper.UI.Controllers
         {
             while (!ct.IsCancellationRequested)
             {
-                DrawMenu();
-                char key = Console.ReadKey(true).KeyChar;
-
-                switch (key)
+                if (_controller.IsRunning)
                 {
-                    case '1':
-                        HandleStart(ct);
-                        break;
-
-                    case '2':
-                        HandleStop();
-                        break;
-
-                    case '3':
-                        return await HandleExitAsync(ct);
+                    // RUNNING STATE: Show stats, wait for ESC
+                    await RunningStateAsync(ct);
+                }
+                else
+                {
+                    // MENU STATE: Show menu, process commands
+                    var exitCode = await MenuStateAsync(ct);
+                    if (exitCode.HasValue)
+                        return exitCode.Value;
                 }
             }
 
             return 0;
         }
 
+        private async Task<int?> MenuStateAsync(CancellationToken ct)
+        {
+            DrawMenu();
+            
+            var key = Console.ReadKey(true).KeyChar;
+
+            switch (key)
+            {
+                case '1':
+                    HandleStart(ct);
+                    return null; // Continue to running state
+                    
+                case '3':
+                    return await HandleExitAsync(ct);
+                    
+                default:
+                    return null; // Ignore invalid input, redraw menu
+            }
+        }
+
+        private async Task RunningStateAsync(CancellationToken ct)
+        {
+            Console.Clear();
+            Console.WriteLine("════════════════════════════════════════");
+            Console.WriteLine("   NetShaper - Capturando Paquetes");
+            Console.WriteLine("════════════════════════════════════════");
+            Console.WriteLine();
+            Console.WriteLine("Presiona ESC para detener y volver al menú");
+            Console.WriteLine();
+            Console.WriteLine("Estadísticas:");
+            Console.WriteLine();
+
+            // Wait for ESC while engine is running
+            while (_controller.IsRunning && !ct.IsCancellationRequested)
+            {
+                if (Console.KeyAvailable)
+                {
+                    var key = Console.ReadKey(true).Key;
+                    if (key == ConsoleKey.Escape)
+                    {
+                        HandleStop();
+                        await Task.Delay(300); // Wait for clean shutdown
+                        break;
+                    }
+                }
+                
+                await Task.Delay(50);
+            }
+        }
+
         private void HandleStart(CancellationToken ct)
         {
-            // La UI no toca el Engine directamente.
-            // Solo delega al EngineController.
             StartResult result = _controller.Start("ip and (tcp or udp)", ct);
             
-            // Si falla, mostrar error y esperar
             if (result != StartResult.Success)
             {
-                Console.WriteLine($"\n❌ Error al iniciar el engine: {result}");
-                Console.WriteLine("\nPosibles causas:");
+                Console.Clear();
+                Console.WriteLine("════════════════════════════════════════");
+                Console.WriteLine("   Error al Iniciar");
+                Console.WriteLine("════════════════════════════════════════");
+                Console.WriteLine();
+                Console.WriteLine($"❌ Error: {result}");
+                Console.WriteLine();
+                
                 if (result == StartResult.OpenFailed)
                 {
-                    Console.WriteLine("- NO tienes privilegios de ADMINISTRADOR (WinDivert requiere admin)");
+                    Console.WriteLine("Posibles causas:");
+                    Console.WriteLine("- NO tienes privilegios de ADMINISTRADOR");
                     Console.WriteLine("- El driver WinDivert no está instalado");
                 }
                 else if (result == StartResult.InvalidFilter)
                 {
-                    Console.WriteLine("- El filtro WinDivert es inválido");
+                    Console.WriteLine("El filtro WinDivert es inválido");
                 }
-                Console.WriteLine("\nPresiona cualquier tecla para continuar...");
+                
+                Console.WriteLine();
+                Console.WriteLine("Presiona cualquier tecla para volver al menú...");
                 Console.ReadKey(true);
             }
-            else
-            {
-                Console.WriteLine("\n✅ Engine iniciado correctamente");
-                Console.WriteLine("El motor está capturando y mostrando estadísticas en tiempo real.");
-                Console.WriteLine("Usa la opción '2. Stop' para detener la captura.");
-                Console.WriteLine("\nPresiona cualquier tecla para continuar...");
-                Console.ReadKey(true);
-            }
+            // If success, RunAsync will transition to RunningState automatically
         }
 
         private void HandleStop()
@@ -91,10 +136,17 @@ namespace NetShaper.UI.Controllers
         private static void DrawMenu()
         {
             Console.Clear();
-            Console.WriteLine("NetShaper");
-            Console.WriteLine("1. Start");
-            Console.WriteLine("2. Stop");
-            Console.WriteLine("3. Exit");
+            Console.WriteLine("════════════════════════════════════════");
+            Console.WriteLine("   NetShaper - Packet Shaping Monitor");
+            Console.WriteLine("════════════════════════════════════════");
+            Console.WriteLine();
+            Console.WriteLine("⚠️  IMPORTANTE: Debe ejecutarse como ADMINISTRADOR");
+            Console.WriteLine();
+            Console.WriteLine("1. Start  - Iniciar captura de paquetes");
+            Console.WriteLine("3. Exit   - Salir del programa");
+            Console.WriteLine();
+            Console.WriteLine("Filtro: ip and (tcp or udp)");
+            Console.WriteLine();
         }
     }
 }

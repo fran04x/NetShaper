@@ -14,6 +14,8 @@ namespace NetShaper.Native
 
         private WinDivertHandle? _handle;
         private int _disposed;
+        private int _shutdownFlag;  // 0 = not shutdown, 1 = shutdown initiated
+        private int _activeOperations;  // Counter for concurrent Receive/Send operations
 
         static WinDivertAdapter()
         {
@@ -46,6 +48,10 @@ namespace NetShaper.Native
                 }
 
                 _handle = handle;
+            
+                // Reset shutdown flag to allow re-open after shutdown (reentrancy support)
+                Interlocked.Exchange(ref _shutdownFlag, 0);
+            
                 return CaptureResult.Success;
             }
             catch (Exception)
@@ -64,15 +70,21 @@ namespace NetShaper.Native
         {
             length = 0;
             
-            CaptureResult validation = ValidateHandle(out WinDivertHandle? handle);
-            if (validation != CaptureResult.Success)
-                return validation;
+            // Prevent disposal while operation is active
+            if (Interlocked.CompareExchange(ref _disposed, 0, 0) == 1)
+                return CaptureResult.InvalidHandle;
             
-            if (buffer.IsEmpty)
-                return CaptureResult.BufferTooSmall;
-
+            Interlocked.Increment(ref _activeOperations);
+            
             try
             {
+                WinDivertHandle? handle = _handle;
+                if (handle == null || handle.IsInvalid)
+                    return CaptureResult.InvalidHandle;
+                
+                if (buffer.IsEmpty)
+                    return CaptureResult.BufferTooSmall;
+
                 fixed (byte* pBuf = buffer)
                 {
                     WinDivertAddress addr = ToWinDivertAddress(ref metadata);
@@ -94,9 +106,11 @@ namespace NetShaper.Native
             }
             catch (ObjectDisposedException)
             {
-                // Handle was disposed during shutdown between our null check and usage
-                // This is expected during rapid stop sequences - treat as InvalidHandle
                 return CaptureResult.InvalidHandle;
+            }
+            finally
+            {
+                Interlocked.Decrement(ref _activeOperations);
             }
         }
 
@@ -109,15 +123,21 @@ namespace NetShaper.Native
             batchLength = 0;
             packetCount = 0;
             
-            CaptureResult validation = ValidateHandle(out WinDivertHandle? handle);
-            if (validation != CaptureResult.Success)
-                return validation;
+            // Prevent disposal while operation is active
+            if (Interlocked.CompareExchange(ref _disposed, 0, 0) == 1)
+                return CaptureResult.InvalidHandle;
             
-            if (buffer.IsEmpty || metadataArray.IsEmpty)
-                return CaptureResult.BufferTooSmall;
-
+            Interlocked.Increment(ref _activeOperations);
+            
             try
             {
+                WinDivertHandle? handle = _handle;
+                if (handle == null || handle.IsInvalid)
+                    return CaptureResult.InvalidHandle;
+                
+                if (buffer.IsEmpty || metadataArray.IsEmpty)
+                    return CaptureResult.BufferTooSmall;
+
                 const int MaxBatchSize = 64;
                 int maxPackets = Math.Min(metadataArray.Length, MaxBatchSize);
                 
@@ -157,39 +177,12 @@ namespace NetShaper.Native
                         // Convert WinDivertAddress to PacketMetadata
                         meta = FromWinDivertAddress(ref addr);
                         
-                        // Parse IP header to get packet length
-                        // IP header: byte 0 = version+IHL
-                        // For IPv4: bytes 2-3 = Total Length (big-endian)
-                        // For IPv6: bytes 4-5 = Payload Length (big-endian)
-                        
-                        if (offset >= readLen)
+                        // Parse packet length using helper method
+                        uint packetLength = ParsePacketLength(pBuf, offset, readLen);
+                        if (packetLength == 0)
                         {
-                            // Safety: prevent reading beyond buffer
                             meta.Length = 0;
-                            break;
-                        }
-                        
-                        byte* pPacket = pBuf + offset;
-                        byte versionIHL = pPacket[0];
-                        byte version = (byte)(versionIHL >> 4);
-                        
-                        uint packetLength;
-                        if (version == 4)
-                        {
-                            // IPv4: Total Length at offset 2-3 (big-endian)
-                            packetLength = (uint)((pPacket[2] << 8) | pPacket[3]);
-                        }
-                        else if (version == 6)
-                        {
-                            // IPv6: Payload Length at offset 4-5 (big-endian) + 40 bytes header
-                            uint payloadLen = (uint)((pPacket[4] << 8) | pPacket[5]);
-                            packetLength = 40 + payloadLen;
-                        }
-                        else
-                        {
-                            // Unknown version, skip this packet
-                            meta.Length = 0;
-                            break;
+                            break;  // Invalid or unknown packet
                         }
                         
                         meta.Length = packetLength;
@@ -203,21 +196,31 @@ namespace NetShaper.Native
             {
                 return CaptureResult.InvalidHandle;
             }
+            finally
+            {
+                Interlocked.Decrement(ref _activeOperations);
+            }
         }
 
         public unsafe CaptureResult Send(
             ReadOnlySpan<byte> buffer,
             ref PacketMetadata metadata)
         {
-            CaptureResult validation = ValidateHandle(out WinDivertHandle? handle);
-            if (validation != CaptureResult.Success)
-                return validation;
+            // Prevent disposal while operation is active
+            if (Interlocked.CompareExchange(ref _disposed, 0, 0) == 1)
+                return CaptureResult.InvalidHandle;
             
-            if (buffer.IsEmpty)
-                return CaptureResult.InvalidParameter;
-
+            Interlocked.Increment(ref _activeOperations);
+            
             try
             {
+                WinDivertHandle? handle = _handle;
+                if (handle == null || handle.IsInvalid)
+                    return CaptureResult.InvalidHandle;
+                
+                if (buffer.IsEmpty)
+                    return CaptureResult.InvalidParameter;
+
                 fixed (byte* pBuf = buffer)
                 {
                     WinDivertAddress addr = ToWinDivertAddress(ref metadata);
@@ -238,9 +241,11 @@ namespace NetShaper.Native
             }
             catch (ObjectDisposedException)
             {
-                // Handle was disposed during shutdown between our null check and usage
-                // This is expected during rapid stop sequences - treat as InvalidHandle
                 return CaptureResult.InvalidHandle;
+            }
+            finally
+            {
+                Interlocked.Decrement(ref _activeOperations);
             }
         }
 
@@ -251,15 +256,19 @@ namespace NetShaper.Native
             // It must work even if the instance will be disposed later
             // This allows proper Start/Stop reentrancy as per rules v2 §71
             
-            WinDivertHandle? handle = _handle;
+            // Atomic shutdown flag - only one thread wins
+            if (Interlocked.CompareExchange(ref _shutdownFlag, 1, 0) != 0)
+                return;  // Already shutdown by another thread
+            
+            // Atomic swap: get handle and set to null in one operation
+            WinDivertHandle? handle = Interlocked.Exchange(ref _handle, null);
             if (handle == null || handle.IsInvalid)
                 return;
 
-            // Shutdown reception first
+            // Shutdown reception first (unblocks WinDivertRecv calls)
             WinDivertShutdownNative(handle, ShutdownRecv);
             
-            // Close and release the handle to allow restart
-            _handle = null;
+            // Dispose handle (only this thread executes this)
             handle.Dispose();
         }
 
@@ -286,10 +295,20 @@ namespace NetShaper.Native
 		{
 			if (Interlocked.CompareExchange(ref _disposed, 1, 0) == 0)
 			{
+				// Wait for all active operations to complete before disposing
+				// Uses SpinWait instead of locks (hot-path requirement)
+				var spin = new System.Threading.SpinWait();
+				while (Interlocked.CompareExchange(ref _activeOperations, 0, 0) != 0)
+				{
+					spin.SpinOnce();
+					if (spin.Count > 10000)  // Timeout after ~10ms
+						break;  // Force disposal if operations stuck
+				}
+				
 				if (_handle != null && !_handle.IsInvalid)
 				{
-					// Shutdown orderly antes de cerrar handle
-					WinDivertShutdownNative(_handle, 0); // 0 = SHUT_RDWR
+					// Shutdown orderly antes de cerrar handle (recv + send)
+					WinDivertShutdownNative(_handle, NativeMethods.WinDivertShutdownBoth);
 					_handle.Dispose();
 				}
 			}
@@ -321,6 +340,37 @@ namespace NetShaper.Native
                 1168 => CaptureResult.ElementNotFound,
                 _ => CaptureResult.Unknown
             };
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static unsafe uint ParsePacketLength(byte* pPacket, uint offset, uint readLen)
+        {
+            if (offset >= readLen)
+                return 0;
+
+            byte* pPkt = pPacket + offset;
+            byte versionIHL = pPkt[0];
+            byte version = (byte)(versionIHL >> 4);
+
+            return version switch
+            {
+                4 => ParseIPv4Length(pPkt),
+                6 => ParseIPv6Length(pPkt),
+                _ => 0
+            };
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static unsafe uint ParseIPv4Length(byte* pPacket)
+        {
+            return (uint)((pPacket[2] << 8) | pPacket[3]);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static unsafe uint ParseIPv6Length(byte* pPacket)
+        {
+            uint payloadLen = (uint)((pPacket[4] << 8) | pPacket[5]);
+            return 40 + payloadLen;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

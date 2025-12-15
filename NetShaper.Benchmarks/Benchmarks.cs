@@ -57,7 +57,8 @@ namespace NetShaper.Benchmarks
             _logger = provider.GetRequiredService<IPacketLogger>();
             _capture = provider.GetRequiredService<IPacketCapture>();
 
-            _engine = new Engine.Engine(_logger, _capture);
+            Func<IPacketCapture> captureFactory = () => _capture;
+            _engine = new Engine.Engine(_logger, captureFactory, threadCount: 1);
             _cts = new CancellationTokenSource();
 
             var result = _engine.Start($"outbound and udp.DstPort == {Port}", _cts.Token);
