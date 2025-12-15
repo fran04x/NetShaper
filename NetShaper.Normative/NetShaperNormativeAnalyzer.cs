@@ -98,7 +98,17 @@ namespace NetShaper.Analyzers
         }
 
         private static void AnalyzeNamedType(SymbolAnalysisContext context) { /*...*/ }
-        private static void AnalyzeField(SymbolAnalysisContext context) { /*...*/ }
+        private static void AnalyzeField(SymbolAnalysisContext context) 
+        {
+            if (context.Symbol is not IFieldSymbol field) return;
+
+            if (field.IsConst || field.IsImplicitlyDeclared || field.DeclaredAccessibility != Accessibility.Private) return;
+
+            if (!field.Name.StartsWith("_"))
+            {
+                context.ReportDiagnostic(Diagnostic.Create(PrivateFieldNaming, field.Locations[0], field.Name));
+            }
+        }
         private static void AnalyzeUnsafeBlock(SyntaxNodeAnalysisContext context) { /*...*/ }
         private static void AnalyzeThrow(SyntaxNodeAnalysisContext context) { /*...*/ }
         private static void AnalyzeDllImport(SyntaxNodeAnalysisContext context) { /*...*/ }
