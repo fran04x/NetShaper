@@ -83,14 +83,16 @@ namespace NetShaper.Analyzers
         private static void AnalyzeBoxingConversion(OperationAnalysisContext context)
         {
             var conversionOperation = (IConversionOperation)context.Operation;
-            if (!conversionOperation.IsBoxing) return;
+            var fromType = conversionOperation.Operand.Type;
+            var toType = conversionOperation.Type;
+
+            if (fromType == null || toType == null) return;
+
+            bool isBoxing = fromType.IsValueType && (toType.SpecialType == SpecialType.System_Object || toType.TypeKind == TypeKind.Interface);
+            if (!isBoxing) return;
 
             var isInEngine = context.Operation.Syntax.FirstAncestorOrSelf<BaseNamespaceDeclarationSyntax>()?.Name.ToString().StartsWith("NetShaper.Engine") ?? false;
             if (!isInEngine) return;
-
-            var fromType = conversionOperation.Operand.Type;
-            var toType = conversionOperation.Type;
-            if (fromType == null || toType == null) return;
 
             context.ReportDiagnostic(Diagnostic.Create(BoxingInEngine, context.Operation.Syntax.GetLocation(), fromType.ToDisplayString(), toType.ToDisplayString()));
         }
