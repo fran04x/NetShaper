@@ -1,0 +1,19 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+*.cache
+
+## Visual Studio
+.vs/
+*.vsidx
+*.vssscc
+
+## Rider
+.idea/
+*.sln.iml
+
+## WinDivert (añadir manualmente)
+!WinDivert.dll
+!WinDivert64.sys

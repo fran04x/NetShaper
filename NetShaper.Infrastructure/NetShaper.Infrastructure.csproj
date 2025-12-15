@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <WarningsAsErrors>true</WarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Infrastructure should ONLY reference Abstractions -->
+    <ProjectReference Include="..\NetShaper.Abstractions\NetShaper.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>
