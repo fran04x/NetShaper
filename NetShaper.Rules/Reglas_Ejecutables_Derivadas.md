@@ -87,7 +87,7 @@
 - **Condición:** Método cualquiera
 - **Detección:** Contar niveles de bloques anidados (if/for/while/foreach/switch/try)
 - **Umbrales:**
-  - NetShaper.Engine: ≤2 niveles
+  - NetShaper.Engine: ≤2 niveles (**Excepción:** ≤3 niveles permitidos exclusivamente dentro de métodos que procesan `ReceiveBatch` para iteración de buffers).
   - Resto de assemblies: ≤3 niveles
 - **Violación:** Excede umbral
 - **Severidad:** ERROR
@@ -376,7 +376,7 @@
 ### R7.04 - Async suffix obligatorio
 - **Condición:** Método con modifier async
 - **Detección:** AST: nombre no termina en "Async"
-- **Excepción:** Event handlers (firma delegate con EventArgs)
+- **Excepción:** Event handlers (delegates con sender, EventArgs)
 - **Violación:** async sin Async suffix
 - **Severidad:** ERROR
 - **Auto-fixable:** SÍ (agregar Async)
@@ -585,7 +585,7 @@
 - Violaciones memoria
 - Breaking changes
 - Complejidad Engine >7
-- Anidación Engine >2
+- Anidación Engine >2 (con excepción en batching)
 
 ### WARNING (requiere justificación)
 - Cohesión LCOM4 >1

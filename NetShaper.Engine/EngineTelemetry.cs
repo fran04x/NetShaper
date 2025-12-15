@@ -45,6 +45,27 @@ namespace NetShaper.Engine
             Interlocked.Increment(ref _invalidPackets);
         }
 
+        public void AddPackets(long count)
+        {
+            Interlocked.Add(ref _packetsProcessed, count);
+        }
+
+        public void AddRecvErrors(long count)
+        {
+            Interlocked.Add(ref _recvErrors, count);
+            Interlocked.Add(ref _consecutiveErrors, count);
+        }
+
+        public void AddSendErrors(long count)
+        {
+            Interlocked.Add(ref _sendErrors, count);
+        }
+
+        public void AddInvalidPackets(long count)
+        {
+            Interlocked.Add(ref _invalidPackets, count);
+        }
+
         public void Reset()
         {
             Interlocked.Exchange(ref _packetsProcessed, 0);

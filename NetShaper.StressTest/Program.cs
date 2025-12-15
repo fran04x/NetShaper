@@ -21,6 +21,15 @@ namespace NetShaper.StressTest
                     case "3":
                         await ChaoticTests.RunChaoticAssaultAsync();
                         return 0;
+                    case "4":
+                        await MultiThreadTests.RunMultiThreadPerformanceAsync(1);
+                        return 0;
+                    case "5":
+                        await MultiThreadTests.RunMultiThreadPerformanceAsync(2);
+                        return 0;
+                    case "6":
+                        await MultiThreadTests.RunMultiThreadPerformanceAsync(4);
+                        return 0;
                     default:
                         Console.WriteLine($"Invalid argument: {args[0]}");
                         return 1;
@@ -35,7 +44,12 @@ namespace NetShaper.StressTest
                 Console.WriteLine("1. Test de Estabilidad Real (uso correcto)");
                 Console.WriteLine("2. Test de Rendimiento Real (PPS/Jitter/ZeroAlloc)");
                 Console.WriteLine("3. Test Caótico (mal uso extremo)");
-                Console.WriteLine("4. Salir");
+                Console.WriteLine("─────────────────────────────────────");
+                Console.WriteLine("4. Multi-Threading Test (1 thread - baseline)");
+                Console.WriteLine("5. Multi-Threading Test (2 threads)");
+                Console.WriteLine("6. Multi-Threading Test (4 threads)");
+                Console.WriteLine("─────────────────────────────────────");
+                Console.WriteLine("7. Salir");
                 Console.Write("\nSelecciona una opción: ");
 
                 var key = Console.ReadKey(true);
@@ -53,6 +67,15 @@ namespace NetShaper.StressTest
                         await ChaoticTests.RunChaoticAssaultAsync();
                         break;
                     case '4':
+                        await MultiThreadTests.RunMultiThreadPerformanceAsync(1);
+                        break;
+                    case '5':
+                        await MultiThreadTests.RunMultiThreadPerformanceAsync(2);
+                        break;
+                    case '6':
+                        await MultiThreadTests.RunMultiThreadPerformanceAsync(4);
+                        break;
+                    case '7':
                         return 0;
                     default:
                         Console.WriteLine("Opción no válida.");

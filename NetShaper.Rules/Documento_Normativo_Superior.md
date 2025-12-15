@@ -54,7 +54,7 @@ Violación → FAIL.
 ## 4. ENGINE / HOT PATH (CRÍTICO)
 
 Principios:
-- Un solo hilo de captura.
+- Modelo de captura: Single-thread o **Symmetric Multi-thread (Parallel Shared-Nothing)**.
 - Hot-path determinista.
 - Heap allocation por paquete = 0.
 
@@ -102,7 +102,8 @@ Obligatorio:
 
 ## 7. CONCURRENCIA
 
-- Hot-path single-thread.
+- Hot-path: Single-thread lógico por instancia de procesamiento.
+- Prohibido: Comunicación compleja entre hilos (locking, signaling). Permitido: Partitioning estático.
 - Comunicación cross-thread lock-free.
 - Backpressure definido.
 - Overflow definido.

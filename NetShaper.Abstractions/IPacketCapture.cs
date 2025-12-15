@@ -8,6 +8,7 @@ namespace NetShaper.Abstractions
     {
         CaptureResult Open(string filter);
         CaptureResult Receive(Span<byte> buffer, out uint length, ref PacketMetadata metadata);
+        CaptureResult ReceiveBatch(Span<byte> buffer, Span<PacketMetadata> metadataArray, out uint batchLength, out int packetCount);
         CaptureResult Send(ReadOnlySpan<byte> buffer, ref PacketMetadata metadata);
         void Shutdown();
         void CalculateChecksums(Span<byte> buffer, uint length, ref PacketMetadata metadata);
@@ -44,5 +45,8 @@ namespace NetShaper.Abstractions
         public byte UdpChecksum;
         public ushort Reserved1;
         public uint Reserved2;
+        
+        // BATCH MODE SUPPORT: Length of packet in batch (populated by ReceiveBatch)
+        public uint Length;
     }
 }

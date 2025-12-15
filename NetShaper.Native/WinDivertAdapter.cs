@@ -100,6 +100,111 @@ namespace NetShaper.Native
             }
         }
 
+        public unsafe CaptureResult ReceiveBatch(
+            Span<byte> buffer,
+            Span<PacketMetadata> metadataArray,
+            out uint batchLength,
+            out int packetCount)
+        {
+            batchLength = 0;
+            packetCount = 0;
+            
+            CaptureResult validation = ValidateHandle(out WinDivertHandle? handle);
+            if (validation != CaptureResult.Success)
+                return validation;
+            
+            if (buffer.IsEmpty || metadataArray.IsEmpty)
+                return CaptureResult.BufferTooSmall;
+
+            try
+            {
+                const int MaxBatchSize = 64;
+                int maxPackets = Math.Min(metadataArray.Length, MaxBatchSize);
+                
+                // Stack-allocate WinDivertAddress array for batch
+                WinDivertAddress* pAddrArray = stackalloc WinDivertAddress[maxPackets];
+                
+                fixed (byte* pBuf = buffer)
+                {
+                    uint readLen = 0;  // ← CORRECTED: was ulong
+                    uint addrLen = (uint)(maxPackets * sizeof(WinDivertAddress));
+                    
+                    // Call WinDivertRecvEx (batch mode)
+                    bool success = WinDivertRecvExNative(
+                        handle,
+                        pBuf,
+                        (uint)buffer.Length,
+                        &readLen,  // ← CORRECTED: now uint* instead of ulong*
+                        0,  // flags = 0 (synchronous)
+                        pAddrArray,
+                        &addrLen,
+                        null);  // pOverlapped = null (synchronous)
+
+                    if (!success)
+                        return MapError(Marshal.GetLastWin32Error());
+
+                    batchLength = readLen;  // ← No cast needed now
+                    packetCount = (int)(addrLen / sizeof(WinDivertAddress));
+                    
+                    // Parse IP headers to extract packet lengths
+                    // WinDivert packs packets tightly: [Pkt1][Pkt2][Pkt3]...
+                    uint offset = 0;
+                    for (int i = 0; i < packetCount; i++)
+                    {
+                        ref PacketMetadata meta = ref metadataArray[i];
+                        ref WinDivertAddress addr = ref pAddrArray[i];
+                        
+                        // Convert WinDivertAddress to PacketMetadata
+                        meta = FromWinDivertAddress(ref addr);
+                        
+                        // Parse IP header to get packet length
+                        // IP header: byte 0 = version+IHL
+                        // For IPv4: bytes 2-3 = Total Length (big-endian)
+                        // For IPv6: bytes 4-5 = Payload Length (big-endian)
+                        
+                        if (offset >= readLen)
+                        {
+                            // Safety: prevent reading beyond buffer
+                            meta.Length = 0;
+                            break;
+                        }
+                        
+                        byte* pPacket = pBuf + offset;
+                        byte versionIHL = pPacket[0];
+                        byte version = (byte)(versionIHL >> 4);
+                        
+                        uint packetLength;
+                        if (version == 4)
+                        {
+                            // IPv4: Total Length at offset 2-3 (big-endian)
+                            packetLength = (uint)((pPacket[2] << 8) | pPacket[3]);
+                        }
+                        else if (version == 6)
+                        {
+                            // IPv6: Payload Length at offset 4-5 (big-endian) + 40 bytes header
+                            uint payloadLen = (uint)((pPacket[4] << 8) | pPacket[5]);
+                            packetLength = 40 + payloadLen;
+                        }
+                        else
+                        {
+                            // Unknown version, skip this packet
+                            meta.Length = 0;
+                            break;
+                        }
+                        
+                        meta.Length = packetLength;
+                        offset += packetLength;
+                    }
+
+                    return CaptureResult.Success;
+                }
+            }
+            catch (ObjectDisposedException)
+            {
+                return CaptureResult.InvalidHandle;
+            }
+        }
+
         public unsafe CaptureResult Send(
             ReadOnlySpan<byte> buffer,
             ref PacketMetadata metadata)
@@ -282,6 +387,18 @@ namespace NetShaper.Native
             uint packetLen,
             out uint readLen,
             WinDivertAddress* pAddr);
+
+        [LibraryImport("WinDivert.dll", EntryPoint = "WinDivertRecvEx")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static unsafe partial bool WinDivertRecvExNative(
+            WinDivertHandle handle,
+            byte* pPacket,
+            uint packetLen,
+            uint* pRecvLen,      // ← CORRECTED: was ulong*, should be uint*
+            ulong flags,
+            WinDivertAddress* pAddr,
+            uint* pAddrLen,      // ← CORRECTED: Input/Output, size in BYTES (not element count)
+            void* pOverlapped);
 
         [LibraryImport("WinDivert.dll", EntryPoint = "WinDivertSend")]
         [return: MarshalAs(UnmanagedType.Bool)]
