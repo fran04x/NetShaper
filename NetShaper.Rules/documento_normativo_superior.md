@@ -10,11 +10,11 @@ Este documento es la **autoridad técnica suprema** del sistema.
 
 ## 1. JERARQUÍA NORMATIVA GLOBAL (INMUTABLE)
 Orden absoluto de precedencia:
-1. Documento_Normativo_Superior.md (DNS)
-2. Domain_Rules.md (DR)
-3. IA_Context_Rules.md (ICR)
-4. Reglas_Ejecutables_Derivadas.md (RED)
-5. IA_Rules_Analyzer.md (IRA)
+1. documento_normativo_superior.md (DNS)
+2. domain_rules.md (DR)
+3. ia_context_rules.md (ICR)
+4. reglas_ejecutables_derivadas.md (RED)
+5. ia_rules_analyzer.md (IRA)
 
 **Principio de especificidad:** Regla específica prevalece sobre regla genérica, independiente del documento origen.
 
