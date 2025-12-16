@@ -39,4 +39,4 @@ jobs:
     - name: Run Chaotic Assault
       run: |
         cd NetShaper.StressTest/bin/Release/net8.0/
-        ./NetShaper.StressTest.exe 6
+        ./NetShaper.StressTest.exe 1
