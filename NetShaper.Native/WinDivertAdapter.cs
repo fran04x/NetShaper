@@ -22,6 +22,7 @@ namespace NetShaper.Native
             ValidateStructLayout();
         }
 
+        [Boundary]  // Lifecycle method - handles initialization exceptions
         public CaptureResult Open(string filter)
         {
             if (Interlocked.CompareExchange(ref _disposed, 0, 0) == 1)

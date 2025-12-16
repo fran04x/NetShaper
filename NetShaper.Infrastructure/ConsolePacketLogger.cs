@@ -6,11 +6,11 @@ namespace NetShaper.Infrastructure
 {
     public sealed class ConsolePacketLogger : IPacketLogger
     {
-        private static readonly double TickFrequency = (double)TimeSpan.TicksPerSecond / Stopwatch.Frequency;
+        private static readonly double _tickFrequency = (double)TimeSpan.TicksPerSecond / Stopwatch.Frequency;
 
         public void Log(in PacketLogEntry entry)
         {
-            long ticks = (long)(entry.Timestamp * TickFrequency);
+            long ticks = (long)(entry.Timestamp * _tickFrequency);
             TimeSpan elapsed = new TimeSpan(ticks);
 
             string levelStr = entry.Level switch

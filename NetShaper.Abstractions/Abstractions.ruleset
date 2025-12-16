@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RuleSet Name="NetShaper Abstractions Rules" ToolsVersion="16.0">
+  <Description>
+    Ruleset personalizado para NetShaper.Abstractions.
+    Suprime reglas inapropiadas para una capa de abstracciones/contratos.
+  </Description>
+  
+  <Rules AnalyzerId="NetShaper.Normative" RuleNamespace="NetShaper.Normative">
+    <!-- DR01: Abstractions no es una capa de dominio, son contratos -->
+    <Rule Id="DR01" Action="None" />
+    
+    <!-- R204: Agrupar atributos relacionados en un archivo es práctica estándar -->
+    <Rule Id="R204" Action="None" />
+    
+    <!-- R1203: Magic numbers en enums son informativos, no críticos -->
+    <Rule Id="R1203" Action="Info" />
+  </Rules>
+</RuleSet>

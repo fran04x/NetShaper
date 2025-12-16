@@ -258,5 +258,23 @@ Este documento define comportamiento normativo de agentes IA en contexto NetShap
 
 Complementario a DNS/DR/RED, no los modifica.
 
+---
+
+## 13. INTEGRIDAD DE LA SOLUCIÓN
+
+### 13.01 Anti-Ofuscación
+- **Condición:** Código generado para cumplir métricas (CC, Anidación).
+- **Prohibición:** Compactar líneas, eliminar saltos de línea o llaves `{}` para engañar al parser de líneas.
+- **Acción:** Si la métrica se viola, se debe refactorizar la lógica o usar atributos eximentes (`[BatchProcessor]`).
+- **Violación:** Código técnicamente válido pero estilísticamente ofuscado → **FAIL**.
+
+### 13.02 Anti-Supresión
+- **Condición:** Errores de analizador estático (Roslyn).
+- **Prohibición:** Uso de `#pragma`, `[SuppressMessage]` o cualquier directiva de compilador para silenciar diagnósticos.
+- **Excepción:** Ninguna, salvo autorización explícita en DNS.
+- **Violación:** Supresión detectada → **FAIL CRÍTICO**.
+
+---
+
 **Estado:** ACTIVO
 **Fecha:** 2025-12-15

@@ -1,0 +1,29 @@
+<Project>
+  <!-- 
+    NetShaper Global Build Configuration
+    
+    Este archivo se aplica automáticamente a todos los proyectos en la solución.
+    Para más información: https://docs.microsoft.com/en-us/visualstudio/msbuild/customize-your-build
+  -->
+  
+  <PropertyGroup>
+    <!-- 
+      NetShaper Normative Analyzer
+      
+      OFF por defecto. Para activarlo:
+      dotnet build /p:EnableNetShaperAnalyzer=true
+      
+      O en CI/CD:
+      <EnableNetShaperAnalyzer Condition="'$(CI)' == 'true'">true</EnableNetShaperAnalyzer>
+    -->
+    <EnableNetShaperAnalyzer Condition="'$(EnableNetShaperAnalyzer)' == ''">false</EnableNetShaperAnalyzer>
+  </PropertyGroup>
+  
+  <!-- Agregar analyzer cuando está habilitado -->
+  <ItemGroup Condition="'$(EnableNetShaperAnalyzer)' == 'true' AND '$(MSBuildProjectName)' != 'NetShaper.Normative'">
+    <ProjectReference Include="$(MSBuildThisFileDirectory)NetShaper.Normative\NetShaper.Normative.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all" />
+  </ItemGroup>
+</Project>

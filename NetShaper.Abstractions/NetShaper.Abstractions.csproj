@@ -3,6 +3,9 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>latest</LangVersion>
+    
+    <!-- Ruleset personalizado: suprime reglas inapropiadas para Abstractions -->
+    <CodeAnalysisRuleSet>Abstractions.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <ItemGroup>
