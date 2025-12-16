@@ -7,10 +7,20 @@
     <LangVersion>latest</LangVersion>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <WarningsAsErrors>true</WarningsAsErrors>
+    
+    <!-- Control del Analyzer: cambiar a false para desactivar -->
+    <EnableNetShaperAnalyzer>true</EnableNetShaperAnalyzer>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\NetShaper.Abstractions\NetShaper.Abstractions.csproj" />
+  </ItemGroup>
+  
+  <!-- Analyzer Condicional: solo se activa si EnableNetShaperAnalyzer=true -->
+  <ItemGroup Condition="'$(EnableNetShaperAnalyzer)' == 'true'">
+    <ProjectReference Include="..\NetShaper.Normative\NetShaper.Normative.csproj" 
+                      OutputItemType="Analyzer" 
+                      ReferenceOutputAssembly="false" />
   </ItemGroup>
 
 </Project>

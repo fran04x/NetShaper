@@ -1,2 +1,2 @@
-dotnet build -c Release
+dotnet build /p:EnableNetShaperAnalyzer=true
 pause
