@@ -1,0 +1,4 @@
+NetShaper.Analyzers.NetShaperNormativeAnalyzer
+public NetShaper.Analyzers.NetShaperNormativeAnalyzer()
+public override System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DiagnosticDescriptor> SupportedDiagnostics { get; }
+public override void Initialize(Microsoft.CodeAnalysis.Diagnostics.AnalysisContext context)
