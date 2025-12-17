@@ -59,7 +59,7 @@ namespace NetShaper.StressTest
             double pps = packetsProcessed / (sw.ElapsedMilliseconds / 1000.0);
             
             // Expected PPS calculation
-            int expectedSingleThread = 83_000;
+            int expectedSingleThread = 100_000;
             double expectedPPS = threadCount == 1 ? expectedSingleThread : expectedSingleThread * 0.98; // slight degradation with more threads
             double efficiency = (pps / expectedPPS) * 100.0;
 

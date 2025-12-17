@@ -13,5 +13,11 @@ namespace NetShaper.UI.Views
         /// <param name="packetsPerSecond">Current packets processed per second.</param>
         /// <param name="totalPackets">Total packets processed.</param>
         void UpdateStats(long packetsPerSecond, long totalPackets);
+
+        /// <summary>
+        /// Initializes the view, capturing the current cursor position for rendering.
+        /// Should be called after the screen is cleared and header is printed.
+        /// </summary>
+        void Initialize();
     }
 }

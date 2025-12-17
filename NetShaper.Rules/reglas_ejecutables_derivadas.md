@@ -247,6 +247,18 @@
 - **Severidad:** ERROR
 - **Auto-fixable:** NO
 
+### R4.01.b – Prohibido debilitar analizador de ownership
+- **Condición:** Modificación de reglas de análisis relacionadas con ArrayPool<T>.Shared.Rent
+- **Detección:** Diff en el analizador que:
+ - Ignore constructores
+ - Ignore Dispose
+ - Considere comentarios como transferencia de ownership
+- **Excepciones:** Ninguna
+- **Algoritmo:** Inspección de cambios en el analizador buscando patrones de exclusión de flujo (constructor, Dispose, comment)
+- **Violación:** Alteración del analizador para ocultar desbalance real de ownership
+- **Severidad:** ERROR
+- **Auto-fixable:** NO
+
 ### R4.02 - Tamaños de Buffer Justificados
 - **Condición:** ArrayPool<byte>.Shared.Rent(N)
 - **Detección:** AST: extraer argumento N

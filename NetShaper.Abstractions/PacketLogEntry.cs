@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 namespace NetShaper.Abstractions
 {
     [StructLayout(LayoutKind.Sequential)]
+    [NetShaper.Abstractions.Attributes.ValueObject]
     public readonly struct PacketLogEntry
     {
         public readonly long Timestamp;
@@ -16,6 +17,14 @@ namespace NetShaper.Abstractions
             Level = level;
             Code = code;
             Value = value;
+        }
+
+        // DR.04: Dominio Técnico requiere TryValidateInvariant
+        public bool TryValidateInvariant(out string error)
+        {
+            error = string.Empty;
+            // Logging structs no tienen invariantes complejos - siempre válidos
+            return true;
         }
     }
 

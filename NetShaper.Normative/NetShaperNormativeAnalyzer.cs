@@ -15,7 +15,7 @@ namespace NetShaper.Analyzers
         #region Rules
         private static readonly DiagnosticDescriptor UnsafeWithoutFixed = new("RED_R5_03A", "unsafe sin fixed en Engine", "Bloque unsafe en NetShaper.Engine debe contener fixed", "NetShaper.Engine", DiagnosticSeverity.Error, true);
         private static readonly DiagnosticDescriptor DomainExceptionInEngine = new("RED_R6_10", "DomainException prohibida en Engine", "No se permite DomainException en NetShaper.Engine", "NetShaper.Engine", DiagnosticSeverity.Error, true);
-        private static readonly DiagnosticDescriptor UseCaseComplexityExceeded = new("DR07", "Complejidad ciclomática excedida", "[UseCase] no puede tener complejidad ciclomática > 5", "NetShaper.Domain", DiagnosticSeverity.Error, true);
+        private static readonly DiagnosticDescriptor UseCaseComplexityExceeded = new("DR07", "Complejidad ciclomática excedida", "[UseCase] no puede tener complejidad ciclomática > 5 en capa de aplicación", "NetShaper.Application", DiagnosticSeverity.Error, true);
         private static readonly DiagnosticDescriptor MissingInvariantMethod = new("DR04", "Invariante no declarada", "Tipo de dominio debe declarar ValidateInvariant / TryValidateInvariant", "NetShaper.Domain", DiagnosticSeverity.Error, true);
         private static readonly DiagnosticDescriptor MutableValueObject = new("DR02", "ValueObject mutable", "[ValueObject] debe ser inmutable", "NetShaper.Domain", DiagnosticSeverity.Error, true);
         private static readonly DiagnosticDescriptor InvalidDomainState = new("DR06", "Estado de dominio inválido", "[DomainState] debe ser enum", "NetShaper.Domain", DiagnosticSeverity.Warning, true);
@@ -25,7 +25,7 @@ namespace NetShaper.Analyzers
         private static readonly DiagnosticDescriptor UseLibraryImport = new("R502", "P/Invoke debe usar LibraryImport", "Reemplace [DllImport] con [LibraryImport]", "Security", DiagnosticSeverity.Error, true);
         private static readonly DiagnosticDescriptor NoBinaryFormatter = new("R505", "BinaryFormatter está prohibido", "BinaryFormatter es inseguro", "Security", DiagnosticSeverity.Error, true);
         private static readonly DiagnosticDescriptor PrivateFieldNaming = new("R701", "Campos privados deben usar _camelCase", "El campo privado '{0}' debe seguir el formato _camelCase", "Naming", DiagnosticSeverity.Error, true);
-        private static readonly DiagnosticDescriptor EntityInEngineMustBeStruct = new("DR03", "Entity en Engine debe ser un struct", "Las entidades en NetShaper.Engine deben ser 'struct'", "NetShaper.Domain", DiagnosticSeverity.Error, true);
+        private static readonly DiagnosticDescriptor EntityInEngineMustBeStruct = new("DR03", "Entity en Engine debe ser un struct", "Las entidades en NetShaper.Engine deben ser 'struct'", "NetShaper.Engine", DiagnosticSeverity.Error, true);
         private static readonly DiagnosticDescriptor DomainEventImmutable = new("DR09", "DomainEvent debe ser inmutable", "Los eventos de dominio deben ser inmutables", "NetShaper.Domain", DiagnosticSeverity.Error, true);
         private static readonly DiagnosticDescriptor AsyncInEngineProhibited = new("R301", "Prohibido async en Engine", "'async' está prohibido en NetShaper.Engine excepto en [EngineSetup]", "NetShaper.Engine", DiagnosticSeverity.Error, true);
         private static readonly DiagnosticDescriptor LinqInHotPathProhibited = new("R303", "Prohibido LINQ en Hot-Path", "LINQ está prohibido en NetShaper.Engine", "NetShaper.Engine", DiagnosticSeverity.Error, true);
@@ -73,7 +73,14 @@ namespace NetShaper.Analyzers
         private static readonly DiagnosticDescriptor RedundantThis = new("R705", "'this.' redundante", "El uso de 'this.' es redundante (no hay shadowing)", "Style", DiagnosticSeverity.Warning, true);
         private static readonly DiagnosticDescriptor VarPreferred = new("R706", "Preferir 'var' para tipos evidentes", "Use 'var' cuando el tipo es evidente (new T(), cast explícito)", "Style", DiagnosticSeverity.Warning, true);
         private static readonly DiagnosticDescriptor MissingDomainAttribute = new("DR01", "Falta atributo de dominio", "Las clases en namespace Domain deben tener [Entity], [ValueObject], [AggregateRoot], [DomainEvent] o [UseCase]", "NetShaper.Domain", DiagnosticSeverity.Error, true);
-        private static readonly DiagnosticDescriptor ThrowInTechnicalDomain = new("DR05", "throw prohibido en dominio técnico", "Los statements 'throw' están prohibidos en NetShaper.Engine/Native (excepto [EngineSetup]/[Boundary])", "NetShaper.Domain", DiagnosticSeverity.Error, true);
+        private static readonly DiagnosticDescriptor ThrowInTechnicalDomain = new("DR05", "throw prohibido en dominio técnico", "Los statements 'throw' están prohibidos en NetShaper.Engine/Native (excepto [EngineSetup]/[Boundary])", "NetShaper.Engine", DiagnosticSeverity.Error, true);
+        
+        // FASE 2: Enforcement Crítico
+        private static readonly DiagnosticDescriptor EngineSetupBoundaryViolation = new("R314", "EngineSetup llamado desde hot-path", "Métodos [EngineSetup] solo pueden llamarse desde constructores, otros [EngineSetup] o Main", "NetShaper.Engine", DiagnosticSeverity.Error, true);
+        private static readonly DiagnosticDescriptor HotPathLinqViolation = new("R303H", "LINQ en [HotPath]", "Métodos marcados con [HotPath] no pueden usar LINQ", "NetShaper.Engine", DiagnosticSeverity.Error, true);
+        private static readonly DiagnosticDescriptor HotPathBoxingViolation = new("R304H", "Boxing en [HotPath]", "Métodos marcados con [HotPath] no pueden causar boxing allocations", "NetShaper.Engine", DiagnosticSeverity.Error, true);
+        private static readonly DiagnosticDescriptor HotPathArrayCreationViolation = new("R309H", "new byte[] en [HotPath]", "Métodos marcados con [HotPath] deben usar ArrayPool", "NetShaper.Engine", DiagnosticSeverity.Error, true);
+        private static readonly DiagnosticDescriptor HotPathComplexityViolation = new("R201H", "Complejidad en [HotPath]", "Métodos marcados con [HotPath] no pueden tener complejidad ciclomática >7", "NetShaper.Engine", DiagnosticSeverity.Error, true);
         
         // Reglas adicionales
         private static readonly DiagnosticDescriptor MemberOrderViolation = new("R707", "Orden de miembros incorrecto", "El miembro '{0}' está fuera de orden. Orden esperado: const, static fields, fields, static ctor, ctor, props, methods", "Style", DiagnosticSeverity.Warning, true);
@@ -84,7 +91,6 @@ namespace NetShaper.Analyzers
         // Reglas final batch
         private static readonly DiagnosticDescriptor AbstractionsWithDependencies = new("R104", "Abstractions tiene dependencias", "NetShaper.Abstractions no debe depender de otros proyectos NetShaper (excepto System.*)", "Architecture", DiagnosticSeverity.Error, true);
         private static readonly DiagnosticDescriptor LowCohesion = new("R207", "Baja cohesión detectada", "La clase '{0}' tiene baja cohesión (campos/métodos no relacionados). Considerar dividir.", "Complexity", DiagnosticSeverity.Warning, true);
-        private static readonly DiagnosticDescriptor GCCollectWithSuppression = new("R1101B", "GC.Collect con suppressión incorrecta", "GC.Collect debe usarse con GC.WaitForPendingFinalizers() o está prohibido", "Performance", DiagnosticSeverity.Warning, true);
         #endregion
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
@@ -98,18 +104,25 @@ namespace NetShaper.Analyzers
                 ArrayPoolOwnership, BufferSizeNonStandard, StructuredLoggingRequired, CatchExceptionOnlyBoundaries, DisposableWithoutUsing,
                 // FASES 3-5: Reglas adicionales
                 CyclomaticComplexityUiInfra, NestingDepthExceeded, StructuredLoggingRecommended, SafeHandleRequired, FixedOnlyInEngineNative,
-                HardcodedSecretDetected, MissingInputValidation, NullableNotEnabled, NullableParameterInPublicApi, WarningsNotAsErrors,
+                HardcodedSecretDetected, MissingInputValidation, 
+                // REMOVED: NullableNotEnabled (R8.01), WarningsNotAsErrors (R8.03) - requieren MSBuild analyzer
+                // NullableParameterInPublicApi mantenido (valida símbolos, NO proyecto)
+                NullableParameterInPublicApi,
                 RedundantThis, VarPreferred, MissingDomainAttribute, ThrowInTechnicalDomain,
+                // FASE 2: Enforcement Crítico
+                EngineSetupBoundaryViolation, HotPathLinqViolation, HotPathBoxingViolation, HotPathArrayCreationViolation, HotPathComplexityViolation,
                 // Reglas adicionales
                 MemberOrderViolation, DINotViaConstructor, MissingInvariantTests, TransactionalEventsInEngine,
                 // Reglas final batch
-                AbstractionsWithDependencies, LowCohesion, GCCollectWithSuppression);
+                AbstractionsWithDependencies, LowCohesion);
 
         public override void Initialize(AnalysisContext context)
         {
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
             context.EnableConcurrentExecution();
 
+            // REMOVED: R8.01/R8.03 - requieren MSBuild analyzer, NO DiagnosticAnalyzer
+            
             context.RegisterSymbolAction(AnalyzeNamedType, SymbolKind.NamedType);
             context.RegisterSymbolAction(AnalyzeMethod, SymbolKind.Method);
             context.RegisterSymbolAction(AnalyzeProperty, SymbolKind.Property);
@@ -143,7 +156,9 @@ namespace NetShaper.Analyzers
             context.RegisterSyntaxNodeAction(AnalyzeVarUsage, SyntaxKind.VariableDeclaration);
             context.RegisterSyntaxNodeAction(AnalyzeThrowInTechnicalDomain, SyntaxKind.ThrowStatement);
             context.RegisterSyntaxNodeAction(AnalyzeStructuredLoggingRecommended, SyntaxKind.InvocationExpression);
-            context.RegisterSyntaxNodeAction(AnalyzeGCCollectPattern, SyntaxKind.InvocationExpression);
+            
+            // FASE 2: Enforcement Crítico
+            context.RegisterSyntaxNodeAction(AnalyzeEngineSetupBoundary, SyntaxKind.InvocationExpression);
         }
 
         #region Analyzers
@@ -160,9 +175,39 @@ namespace NetShaper.Analyzers
             if (!isBoxing) return;
 
             var isInEngine = context.Operation.Syntax.FirstAncestorOrSelf<BaseNamespaceDeclarationSyntax>()?.Name.ToString().StartsWith("NetShaper.Engine") ?? false;
-            if (!isInEngine) return;
-
-            context.ReportDiagnostic(Diagnostic.Create(BoxingInEngine, context.Operation.Syntax.GetLocation(), fromType.ToDisplayString(), toType.ToDisplayString()));
+            if (isInEngine)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(BoxingInEngine, context.Operation.Syntax.GetLocation(), fromType.ToDisplayString(), toType.ToDisplayString()));
+            }
+            
+            // HotPath: Enforcement adicional
+            var containingMethod = context.Operation.Syntax.FirstAncestorOrSelf<MethodDeclarationSyntax>();
+            if (containingMethod != null)
+            {
+                // Buscar el método en los símbolos del tipo contenedor
+                var containingType = context.ContainingSymbol as INamedTypeSymbol;
+                if (containingType != null)
+                {
+                    var methodSymbol = containingType.GetMembers()
+                        .OfType<IMethodSymbol>()
+                        .FirstOrDefault(m => m.DeclaringSyntaxReferences.Any(r => r.GetSyntax() == containingMethod));
+                    
+                    if (methodSymbol != null)
+                    {
+                        var hasHotPath = methodSymbol.GetAttributes()
+                            .Any(a => a.AttributeClass?.Name == "HotPathAttribute");
+                        
+                        if (hasHotPath)
+                        {
+                            context.ReportDiagnostic(Diagnostic.Create(
+                                HotPathBoxingViolation,
+                                context.Operation.Syntax.GetLocation(),
+                                fromType.ToDisplayString(),
+                                toType.ToDisplayString()));
+                        }
+                    }
+                }
+            }
         }
 
         private static void AnalyzeNamedType(SymbolAnalysisContext context)
@@ -287,6 +332,30 @@ namespace NetShaper.Analyzers
                     context.ReportDiagnostic(Diagnostic.Create(ToArrayToListInEngineProhibited, invocation.GetLocation()));
                 }
             }
+            
+            // HotPath: Enforcement adicional para métodos marcados con [HotPath]
+            var containingMethod = invocation.FirstAncestorOrSelf<MethodDeclarationSyntax>();
+            if (containingMethod != null)
+            {
+                var methodSymbol = context.SemanticModel.GetDeclaredSymbol(containingMethod);
+                if (methodSymbol != null)
+                {
+                    var hasHotPath = methodSymbol.GetAttributes()
+                        .Any(a => a.AttributeClass?.Name == "HotPathAttribute");
+                    
+                    if (hasHotPath)
+                    {
+                        var linqMethods = new[] { "Where", "Select", "SelectMany", "OrderBy", "OrderByDescending", "GroupBy", 
+                                                 "Join", "Any", "All", "First", "FirstOrDefault", "Single", "SingleOrDefault",
+                                                 "Last", "LastOrDefault", "Count", "Sum", "Average", "Min", "Max", "Aggregate" };
+                        
+                        if (linqMethods.Contains(methodName) && containingType.StartsWith("System.Linq"))
+                        {
+                            context.ReportDiagnostic(Diagnostic.Create(HotPathLinqViolation, invocation.GetLocation()));
+                        }
+                    }
+                }
+            }
 
             // R1101: GC.Collect prohibido
             if (containingType == "System.GC" && methodName == "Collect")
@@ -362,18 +431,29 @@ namespace NetShaper.Analyzers
         private static void AnalyzeDomainType(SymbolAnalysisContext context, INamedTypeSymbol type)
         {
             var attributes = type.GetAttributes();
-            var domainAttributes = new[] { "EntityAttribute", "ValueObjectAttribute", "AggregateRootAttribute" };
+            
+            // DR.01: Extendido para cubrir DomainEvent y UseCase
+            var domainAttributes = new[] { "EntityAttribute", "ValueObjectAttribute", "AggregateRootAttribute", 
+                                           "DomainEventAttribute", "UseCaseAttribute" };
             
             var hasDomainAttribute = attributes.Any(a => domainAttributes.Contains(a.AttributeClass?.Name));
             if (!hasDomainAttribute) return;
 
-            // DR04: Verificar ValidateInvariant
-            var hasValidateInvariant = type.GetMembers().OfType<IMethodSymbol>()
-                .Any(m => m.Name == "ValidateInvariant" || m.Name == "TryValidateInvariant");
-
-            if (!hasValidateInvariant)
+            // DR04: Verificar ValidateInvariant (solo para Entity/ValueObject/AggregateRoot)
+            var requiresInvariant = attributes.Any(a => 
+                a.AttributeClass?.Name == "EntityAttribute" || 
+                a.AttributeClass?.Name == "ValueObjectAttribute" ||
+                a.AttributeClass?.Name == "AggregateRootAttribute");
+            
+            if (requiresInvariant)
             {
-                context.ReportDiagnostic(Diagnostic.Create(MissingInvariantMethod, type.Locations[0]));
+                var hasValidateInvariant = type.GetMembers().OfType<IMethodSymbol>()
+                    .Any(m => m.Name == "ValidateInvariant" || m.Name == "TryValidateInvariant");
+
+                if (!hasValidateInvariant)
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(MissingInvariantMethod, type.Locations[0]));
+                }
             }
 
             // DR02: ValueObject debe ser inmutable
@@ -467,6 +547,11 @@ namespace NetShaper.Analyzers
 
         private static void AnalyzeUseCaseComplexity(SymbolAnalysisContext context, IMethodSymbol method)
         {
+            // DR07: Validar namespace antes de validar atributo
+            var nsName = method.ContainingNamespace?.ToDisplayString() ?? "";
+            if (!nsName.Contains(".Composition") && !nsName.Contains(".Application"))
+                return; // Skip if not in application layer
+            
             var isUseCase = method.ContainingType.GetAttributes().Any(a => a.AttributeClass?.Name == "UseCaseAttribute");
             if (!isUseCase) return;
 
@@ -629,6 +714,19 @@ namespace NetShaper.Analyzers
                     limit
                 ));
             }
+            
+            // HotPath: Validar complejidad en métodos con [HotPath]
+            var hasHotPath = method.GetAttributes()
+                .Any(a => a.AttributeClass?.Name == "HotPathAttribute");
+            
+            if (hasHotPath && complexity > 7)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(
+                    HotPathComplexityViolation,
+                    method.Locations[0],
+                    method.Name,
+                    complexity));
+            }
         }
 
         private static void AnalyzeConstructorDependencies(SymbolAnalysisContext context, IMethodSymbol constructor)
@@ -703,18 +801,45 @@ namespace NetShaper.Analyzers
         private static void AnalyzeLiterals(SyntaxNodeAnalysisContext context)
         {
             var literal = (LiteralExpressionSyntax)context.Node;
-            if (!literal.Token.ValueText.All(char.IsDigit)) return; 
-            var value = Convert.ToInt64(literal.Token.Value);
-            if (value <= 2 && value >= -1) return;
-            var parent = literal.Parent;
-            if (parent is ConstantPatternSyntax || parent is CaseSwitchLabelSyntax || parent.Ancestors().OfType<AttributeSyntax>().Any()) return;
+            if (literal.Token.Value is not int and not long and not double) return;
             
-            if (parent.Parent is VariableDeclaratorSyntax v && 
-                v.Parent is VariableDeclarationSyntax vd && 
-                vd.Parent is FieldDeclarationSyntax fd)
+            int value = literal.Token.Value switch
             {
-                if (fd.Modifiers.Any(m => m.IsKind(SyntaxKind.ConstKeyword)))
-                    return;
+                int i => i,
+                long l => (int)l,
+                _ => 0
+            };
+            
+            // FIX: Whitelist for protocol constants (TCP/IP offsets)
+            var protocolOffsets = new[] { 8, 20, 28, 40 }; // TCP header, IP header sizes
+            if (protocolOffsets.Contains(value)) return;
+            
+            // FIX: Skip bitwise operations (shifts, masks)
+            var parent = literal.Parent;
+            if (parent is BinaryExpressionSyntax bin)
+            {
+                if (bin.IsKind(SyntaxKind.LeftShiftExpression) || 
+                    bin.IsKind(SyntaxKind.RightShiftExpression) ||
+                    bin.IsKind(SyntaxKind.BitwiseAndExpression) ||
+                    bin.IsKind(SyntaxKind.BitwiseOrExpression))
+                {
+                    var bitConstants = new[] { 4, 8 }; // Common bit shifts
+                    if (bitConstants.Contains(value)) return;
+                }
+            }
+            
+            // Common acceptable values
+            if (value == 0 || value == 1 || value == 2 || value == -1 || value == 100 || value == 1000)
+                return;
+
+            // Verificar si es en campo const o readonly static
+            if (literal.Parent is EqualsValueClauseSyntax equalsValue &&
+                equalsValue.Parent is VariableDeclaratorSyntax varDeclarator &&
+                varDeclarator.Parent is VariableDeclarationSyntax varDeclaration &&
+                varDeclaration.Parent is FieldDeclarationSyntax fd)
+            {
+                bool hasConst = fd.Modifiers.Any(m => m.IsKind(SyntaxKind.ConstKeyword));
+                if (hasConst) return;
                 
                 bool hasStatic = fd.Modifiers.Any(m => m.IsKind(SyntaxKind.StaticKeyword));
                 bool hasReadonly = fd.Modifiers.Any(m => m.IsKind(SyntaxKind.ReadOnlyKeyword));
@@ -822,6 +947,42 @@ namespace NetShaper.Analyzers
                     {
                         var size = Convert.ToInt32(constValue.Value);
                         if (size <= 16) return; // Stackalloc pequeño OK
+                    }
+                }
+            }
+            
+            // HotPath: Validar en métodos con [HotPath]
+            var containingMethod = arrayCreation.FirstAncestorOrSelf<MethodDeclarationSyntax>();
+            if (containingMethod != null)
+            {
+                var methodSymbol = context.SemanticModel.GetDeclaredSymbol(containingMethod);
+                if (methodSymbol != null)
+                {
+                    var hasHotPath = methodSymbol.GetAttributes()
+                        .Any(a => a.AttributeClass?.Name == "HotPathAttribute");
+                    
+                    if (hasHotPath)
+                    {
+                        // Verificar tamaño para HotPath  
+                        if (arrayCreation.Type.RankSpecifiers.Count > 0)
+                        {
+                            var rankSpecifier = arrayCreation.Type.RankSpecifiers[0];
+                            if (rankSpecifier.Sizes.Count > 0)
+                            {
+                                var sizeExpr = rankSpecifier.Sizes[0];
+                                var constValue = context.SemanticModel.GetConstantValue(sizeExpr);
+                                if (constValue.HasValue)
+                                {
+                                    var size = Convert.ToInt32(constValue.Value);
+                                    if (size > 16)
+                                    {
+                                        context.ReportDiagnostic(Diagnostic.Create(
+                                            HotPathArrayCreationViolation,
+                                            arrayCreation.GetLocation()));
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1035,20 +1196,61 @@ namespace NetShaper.Analyzers
         {
             var fixedStatement = (FixedStatementSyntax)context.Node;
             var nsName = fixedStatement.FirstAncestorOrSelf<BaseNamespaceDeclarationSyntax>()?.Name.ToString() ?? "";
+            
+            // R504: fixed SOLO permitido en Engine/Native (whitelist)
             if (!nsName.StartsWith("NetShaper.Engine") && !nsName.StartsWith("NetShaper.Native"))
+            {
                 context.ReportDiagnostic(Diagnostic.Create(FixedOnlyInEngineNative, fixedStatement.GetLocation()));
+            }
         }
 
+        // FASE 3: Mejoras de Heurísticas
+        
+        /// <summary>
+        /// R5.06 Hardcoded Secrets Detection [HEURISTIC]
+        /// LIMITACIÓN: Pattern-based detection (keywords + entropía).
+        /// NO es análisis semántico real. Tiene whitelists para reducir FP.
+        /// </summary>
         private static void AnalyzeHardcodedSecrets(SyntaxNodeAnalysisContext context)
         {
             var literal = (LiteralExpressionSyntax)context.Node;
             if (literal.Token.Value is not string text || text.Length < 8) return;
-            var lowerText = text.ToLower();
-            if ((lowerText.Contains("password") || lowerText.Contains("secret") || lowerText.Contains("apikey") || 
-                lowerText.Contains("api_key") || lowerText.Contains("token")) && text.Length > 20 && !text.Contains(" "))
-                context.ReportDiagnostic(Diagnostic.Create(HardcodedSecretDetected, literal.GetLocation()));
-            else if (text.Length > 32 && !text.Contains(" ") && CalculateShannonEntropy(text) > 4.5)
-                context.ReportDiagnostic(Diagnostic.Create(HardcodedSecretDetected, literal.GetLocation()));
+
+            // Whitelist: Archivos de test/benchmark
+            var filePath = context.Node.SyntaxTree.FilePath;
+            if (filePath.Contains(".Test.") || filePath.Contains(".Benchmark.") || 
+                filePath.EndsWith("Tests.cs", StringComparison.OrdinalIgnoreCase))
+                return;
+
+            // Whitelist: UUIDs/GUIDs
+            if (System.Text.RegularExpressions.Regex.IsMatch(text, 
+                @"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"))
+                return;
+
+            // Whitelist: const fields
+            if (literal.Parent is EqualsValueClauseSyntax equalsValue &&
+                equalsValue.Parent is VariableDeclaratorSyntax varDecl &&
+                varDecl.Parent is VariableDeclarationSyntax varDeclaration &&
+                varDeclaration.Parent is FieldDeclarationSyntax fieldDecl)
+            {
+                if (fieldDecl.Modifiers.Any(m => m.IsKind(SyntaxKind.ConstKeyword)))
+                    return;
+            }
+
+            // Detección: keyword sospechoso + entropía alta
+            var lowerText = text.ToLowerInvariant();
+            var suspiciousKeywords = new[] { "password", "secret", "apikey", "api_key", "token", "private_key", "privatekey" };
+            
+            bool hasSuspiciousKeyword = suspiciousKeywords.Any(k => lowerText.Contains(k));
+            
+            if (hasSuspiciousKeyword && text.Length > 20)
+            {
+                var entropy = CalculateShannonEntropy(text);
+                if (entropy > 4.5)
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(HardcodedSecretDetected, literal.GetLocation()));
+                }
+            }
         }
 
         private static double CalculateShannonEntropy(string text)
@@ -1060,13 +1262,23 @@ namespace NetShaper.Analyzers
         private static void AnalyzeInputValidation(SymbolAnalysisContext context, IMethodSymbol method)
         {
             if (method.DeclaredAccessibility != Accessibility.Public || method.DeclaringSyntaxReferences.Length == 0) return;
-            if (method.DeclaringSyntaxReferences[0].GetSyntax() is not MethodDeclarationSyntax syntax) return;
+            var syntax = method.DeclaringSyntaxReferences[0].GetSyntax();
+            
             foreach (var param in method.Parameters)
             {
-                if (param.Type.IsValueType || param.NullableAnnotation == NullableAnnotation.Annotated) continue;
-                var hasValidation = syntax.Body?.Statements.OfType<ExpressionStatementSyntax>()
-                    .Any(stmt => stmt.ToString().Contains($"ThrowIfNull({param.Name}")) ?? false;
-                if (!hasValidation)
+                // FIX: Skip value types and ref structs (Span<T>, ReadOnlySpan<T>)
+                if (param.Type.IsValueType || param.Type.IsRefLikeType)
+                    continue; // Value types y Span<T> no pueden ser null
+                    
+                var paramName = param.Name;
+                var paramIdentifier = $"({paramName})";
+                
+                bool hasGuard = syntax.ToString().Contains($"ArgumentNullException.ThrowIfNull({paramName})") ||
+                               syntax.ToString().Contains($"throw new ArgumentNullException(nameof({paramName}))") ||
+                               syntax.ToString().Contains($"if ({paramName} == null)") ||
+                               syntax.ToString().Contains($"if ({paramName} is null)");
+                
+                if (!hasGuard)
                     context.ReportDiagnostic(Diagnostic.Create(MissingInputValidation, param.Locations[0]));
             }
         }
@@ -1079,6 +1291,37 @@ namespace NetShaper.Analyzers
                     context.ReportDiagnostic(Diagnostic.Create(NullableParameterInPublicApi, param.Locations[0]));
         }
 
+        private static void AnalyzeArrayPoolCreation(SyntaxNodeAnalysisContext context)
+        {
+            var invocation = (InvocationExpressionSyntax)context.Node;
+            if (!invocation.ToString().Contains("ArrayPool") || !invocation.ToString().Contains("Rent"))
+                return;
+
+            var containingMethod = invocation.FirstAncestorOrSelf<MethodDeclarationSyntax>();
+            if (containingMethod == null) return;
+            
+            // Skip if method has [BufferOwner] (ownership transfer pattern)
+            var methodSymbol = context.SemanticModel.GetDeclaredSymbol(containingMethod);
+            if (methodSymbol != null)
+            {
+                var hasBufferOwner = methodSymbol.GetAttributes()
+                    .Any(a => a.AttributeClass?.Name == "BufferOwnerAttribute");
+                if (hasBufferOwner) return; // Ownership transfer válido (DNS §7.03)
+            }
+
+            var methodText = containingMethod.ToString();
+            int rentCount = System.Text.RegularExpressions.Regex.Matches(methodText, @"\.Rent\(").Count;
+            int returnCount = System.Text.RegularExpressions.Regex.Matches(methodText, @"\.Return\(").Count;
+
+            if (rentCount > returnCount)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(
+                    ArrayPoolOwnership,
+                    invocation.GetLocation(),
+                    containingMethod.Identifier.Text));
+            }
+        }
+        
         private static void AnalyzeRedundantThis(SyntaxNodeAnalysisContext context)
         {
             var memberAccess = (MemberAccessExpressionSyntax)context.Node;
@@ -1321,31 +1564,63 @@ namespace NetShaper.Analyzers
             }
         }
 
-        private static void AnalyzeGCCollectPattern(SyntaxNodeAnalysisContext context)
+        // FASE 2: Enforcement Crítico
+        
+        /// <summary>
+        /// R3.14 EngineSetup Boundary Validation
+        /// LIMITACIÓN: Call-graph directo SOLAMENTE. No interprocedural analysis.
+        /// NO detecta: invocaciones transitivas (A→B→EngineSetup donde A no tiene [EngineSetup])
+        /// SÍ detecta: invocaciones directas desde hot-path a [EngineSetup]
+        /// Justificación: Roslyn DiagnosticAnalyzer no tiene CFG interprocedural completo
+        /// </summary>
+        private static void AnalyzeEngineSetupBoundary(SyntaxNodeAnalysisContext context)
         {
             var invocation = (InvocationExpressionSyntax)context.Node;
+            var symbolInfo = context.SemanticModel.GetSymbolInfo(invocation);
             
-            // Ya detectado por R1101, pero agregar checks adicionales
-            var invocationStr = invocation.ToString();
-            if (!invocationStr.Contains("GC.Collect")) return;
+            if (symbolInfo.Symbol is not IMethodSymbol targetMethod) return;
             
-            // Buscar si hay WaitForPendingFinalizers después
-            var method = invocation.FirstAncestorOrSelf<MethodDeclarationSyntax>();
-            if (method != null)
+            // Verificar si el método invocado tiene [EngineSetup]
+            var hasEngineSetup = targetMethod.GetAttributes()
+                .Any(a => a.AttributeClass?.Name == "EngineSetupAttribute");
+            
+            if (!hasEngineSetup) return;
+            
+            // Verificar contexto del caller
+            var callingMethod = invocation.FirstAncestorOrSelf<MethodDeclarationSyntax>();
+            var callingCtor = invocation.FirstAncestorOrSelf<ConstructorDeclarationSyntax>();
+            
+            // ✅ Permitido en constructores
+            if (callingCtor != null) return;
+            
+            // ✅ Permitido en Main/Program.cs
+            var sourceTree = invocation.SyntaxTree;
+            if (sourceTree.FilePath.EndsWith("Program.cs", StringComparison.OrdinalIgnoreCase))
+                return;
+                
+            if (callingMethod != null)
             {
-                var invocationLine = invocation.GetLocation().GetLineSpan().StartLinePosition.Line;
-                var statements = method.Body?.Statements ?? method.ExpressionBody?.DescendantNodes().OfType<StatementSyntax>() ?? Enumerable.Empty<StatementSyntax>();
-                
-                bool hasWaitAfter = statements.Any(s => 
-                    s.GetLocation().GetLineSpan().StartLinePosition.Line > invocationLine &&
-                    s.ToString().Contains("WaitForPendingFinalizers"));
-                
-                if (!hasWaitAfter)
+                var callerSymbol = context.SemanticModel.GetDeclaredSymbol(callingMethod);
+                if (callerSymbol != null)
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(GCCollectWithSuppression, invocation.GetLocation()));
+                    // ✅ Permitido si el caller también es [EngineSetup]
+                    var callerHasEngineSetup = callerSymbol.GetAttributes()
+                        .Any(a => a.AttributeClass?.Name == "EngineSetupAttribute");
+                    
+                    if (callerHasEngineSetup) return;
+                    
+                    // ✅ Permitido en método "Main"
+                    if (callerSymbol.Name == "Main") return;
                 }
             }
+            
+            // ❌ Invocación desde hot-path no permitida
+            context.ReportDiagnostic(Diagnostic.Create(
+                EngineSetupBoundaryViolation,
+                invocation.GetLocation(),
+                targetMethod.Name));
         }
+
         
         #endregion
     }

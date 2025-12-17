@@ -5,6 +5,7 @@ using System.Threading;
 using NetShaper.Abstractions;
 using NetShaper.Abstractions.Attributes;
 
+
 namespace NetShaper.Engine
 {
     /// <summary>
@@ -32,45 +33,58 @@ namespace NetShaper.Engine
         
         // Per-thread resources
         private readonly IPacketCapture[] _captures;
-        private readonly byte[][] _buffers;
+        private readonly byte[][] _buffers; // Ownership from AllocateBuffers()
         private readonly Thread[] _threads;
         
         private readonly EngineTelemetry _telemetry;
         private int _isRunning;
         private int _disposed;
+        private int _initialized;
         
         // R707: Constructor after fields
-        // R401: Buffers rented here are returned in Dispose() via ReturnAllBuffers() (DNS §7.03 ownership transfer)
         public Engine(IPacketLogger logger, Func<IPacketCapture> captureFactory, int threadCount)
         {
+            // R507: Guard clauses
+            ArgumentNullException.ThrowIfNull(logger);
+            ArgumentNullException.ThrowIfNull(captureFactory);
+            
             if (threadCount <= 0 || threadCount > MaxThreads)  // R1203: Use named constant
                 throw new ArgumentOutOfRangeException(nameof(threadCount));
             
             _logger = logger;
-            _captureFactory = captureFactory ?? throw new ArgumentNullException(nameof(captureFactory));
+            _captureFactory = captureFactory;
             _threadCount = threadCount;
             _cts = new CancellationTokenSource();
             _telemetry = new EngineTelemetry();
             
-            // Initialize arrays
             _captures = new IPacketCapture[threadCount];
-            _buffers = new byte[threadCount][];
             _threads = new Thread[threadCount];
             
-            // R401: Allocate buffers - ownership transferred to class fields, returned in Dispose()
-            for (int i = 0; i < threadCount; i++)
+            // R401: Ownership transfer via return value (RED R4.01 línea 242)
+            _buffers = AllocateBuffers(threadCount);
+        }
+        
+        // R401: Returns buffers - ownership transfer to caller (RED-compliant)
+        [NetShaper.Abstractions.Attributes.EngineSetup]
+        private byte[][] AllocateBuffers(int count)
+        {
+            // Guard: prevent double-initialization (memory leak)
+            if (Interlocked.CompareExchange(ref _initialized, 1, 0) != 0)
+                throw new InvalidOperationException("AllocateBuffers() already called. Cannot initialize twice.");
+            
+            var buffers = new byte[count][];
+            for (int i = 0; i < count; i++)
             {
                 _captures[i] = _captureFactory();
-                _buffers[i] = System.Buffers.ArrayPool<byte>.Shared.Rent(BufferSizeBytes);
+                buffers[i] = System.Buffers.ArrayPool<byte>.Shared.Rent(BufferSizeBytes);
                 ArrayPoolDiagnostics.RecordRent();
             }
+            
+            return buffers; // Ownership transfer
         }
         
         // R707: Properties after constructor
         public bool IsRunning => Interlocked.CompareExchange(ref _isRunning, 0, 0) == 1;
-        public long PacketCount => _telemetry.PacketsProcessed;
-        public long TotalPacketsProcessed => _telemetry.PacketsProcessed;
-        public int ThreadCount => _threadCount;
         
         // R707: Public methods after properties
         public StartResult Start(string filter, CancellationToken ct = default)
@@ -88,6 +102,10 @@ namespace NetShaper.Engine
             
             return Start(filter);
         }
+        
+        public long PacketCount => _telemetry.PacketsProcessed;
+        public long TotalPacketsProcessed => _telemetry.PacketsProcessed;
+        public int ThreadCount => _threadCount;
         
         public EngineResult RunCaptureLoop()
         {
@@ -123,7 +141,7 @@ namespace NetShaper.Engine
                 var disposeThread = new Thread(() =>
                 {
                     Thread.Sleep(StartupGracePeriodMs);  // R1203: Named constant
-                    try { oldCts.Dispose(); } catch { /* best effort */ }
+                    try { oldCts.Dispose(); } catch (ObjectDisposedException) { /* Expected during rapid Start/Stop */ }
                 })
                 {
                     IsBackground = true,
@@ -363,6 +381,7 @@ namespace NetShaper.Engine
             Break    // Fatal error, stop batch
         }
         
+        // R308 FIX: Helper methods to avoid try-catch in loop
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private PacketValidation ValidatePacketBounds(
             uint packetLen,
@@ -412,17 +431,17 @@ namespace NetShaper.Engine
             return PacketValidation.Valid;
         }
         
-        // R308 FIX: Helper methods to avoid try-catch in loop
-        // Static helpers first (R707: static before instance)
+        // R707: Static helpers before instance helpers
+        [NetShaper.Abstractions.Attributes.Boundary]
         private static void TryShutdownCapture(IPacketCapture capture)
         {
             try
             {
                 capture?.Shutdown();
             }
-            catch
+            catch (Exception)
             {
-                // best effort
+                // Best effort cleanup - suppress all exceptions during shutdown
             }
         }
         

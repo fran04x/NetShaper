@@ -46,8 +46,8 @@ namespace NetShaper.StressTest
                 Console.WriteLine("Selecciona un test:");
                 Console.WriteLine();
                 Console.WriteLine("1-16  = Performance Test (N threads)");
-                Console.WriteLine("        1 = Single thread (83k PPS)");
-                Console.WriteLine("        4 = Quad thread (~81k PPS)");
+                Console.WriteLine("        1 = Single thread");
+                Console.WriteLine("        4 = Quad thread");
                 Console.WriteLine();
                 Console.WriteLine("S     = Stability Test (10,000 Start/Stop cycles)");
                 Console.WriteLine();

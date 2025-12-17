@@ -8,9 +8,11 @@ namespace NetShaper.UI
 {
     sealed class Program
     {
-        static async Task<int> Main(string[] args)
+        static int Main(string[] args) => MainAsync(args).GetAwaiter().GetResult();
+
+        static async Task<int> MainAsync(string[] args)
         {
-            using CancellationTokenSource cts = new CancellationTokenSource();
+            using var cts = new CancellationTokenSource();
 
             Console.CancelKeyPress += (_, e) =>
             {

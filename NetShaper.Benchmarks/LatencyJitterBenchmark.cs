@@ -9,68 +9,123 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Jobs;
+using BenchmarkDotNet.Toolchains.InProcess.NoEmit;
 using Microsoft.Extensions.DependencyInjection;
 using NetShaper.Abstractions;
 using NetShaper.Composition;
 
 namespace NetShaper.Benchmarks
 {
+    public class LatencyJitterInProcessConfig : ManualConfig
+    {
+        public LatencyJitterInProcessConfig()
+        {
+            // Usamos ShortRun para pruebas rápidas
+            // Y aumentamos el timeout a 10 minutos para evitar la excepción "takes too long"
+            AddJob(Job.ShortRun
+                .WithWarmupCount(1)
+                .WithIterationCount(3)
+                .WithToolchain(new InProcessNoEmitToolchain(
+                    timeout: TimeSpan.FromMinutes(10), 
+                    logOutput: true // Para ver si avanza
+                ))); 
+        }
+    }
+
     /// <summary>
     /// Benchmark de latencia individual y jitter.
     /// Optimizado para hardware lento - expectativas realistas.
     /// </summary>
     [MemoryDiagnoser]
-    [SimpleJob(warmupCount: 1, iterationCount: 3)]
+    [Config(typeof(LatencyJitterInProcessConfig))]
     public class LatencyJitterBenchmark
     {
+        // R707: Constants first
         private const int Port = 55558;
         private const int SampleCount = 500; // Reducido para hardware lento
-        
-        private IEngine _engine = null!;
-        private CancellationTokenSource _cts = null!;
-        private Task _captureTask = null!;
-        private Socket _socket = null!;
+
+        // R707: Static fields after constants (Singleton para evitar OpenFailed)
+        private static IEngine _sharedEngine = null!;
+        private static CancellationTokenSource _sharedCts = null!;
+        private static Task _sharedCaptureTask = null!;
+        private static Socket _sharedSocket = null!;
+        private static readonly object _lock = new();
+        private static bool _initialized;
+
+        // R707: Instance fields after static fields
         private byte[] _packet = null!;
 
         [GlobalSetup]
         public void Setup()
         {
-            _packet = new byte[512];
-            _socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            _socket.Connect(IPAddress.Loopback, Port);
-
-            var services = new ServiceCollection();
-            services.AddNetShaperServices();
-            var provider = services.BuildServiceProvider();
-
-            _engine = provider.GetRequiredService<IEngine>();
-            _cts = new CancellationTokenSource();
-
-            var result = _engine.Start($"outbound and udp.DstPort == {Port}", _cts.Token);
-            if (result != StartResult.Success)
-                throw new InvalidOperationException($"Start failed: {result}");
-
-            _captureTask = Task.Run(() => _engine.RunCaptureLoop(), _cts.Token);
-
-            // Warmup ligero
-            for (int i = 0; i < 100; i++)
+            lock (_lock)
             {
-                _socket.Send(_packet);
-                Thread.Sleep(5); // Delay para no saturar
-            }
+                // Solo inicializar UNA VEZ por toda la sesión de benchmarks
+                if (_initialized)
+                {
+                    // Ya existe, solo inicializar buffer local
+                    _packet = new byte[512];
+                    return;
+                }
 
-            Thread.Sleep(500);
+                _initialized = true;
+
+                // Inicializar buffer local
+                _packet = new byte[512];
+
+                // Inicializar socket compartido
+                _sharedSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+                _sharedSocket.Connect(IPAddress.Loopback, Port);
+
+                // Inicializar Engine compartido
+                var services = new ServiceCollection();
+                services.AddNetShaperServices();
+                var provider = services.BuildServiceProvider();
+
+                _sharedEngine = provider.GetRequiredService<IEngine>();
+                _sharedCts = new CancellationTokenSource();
+
+                var result = _sharedEngine.Start($"outbound and udp.DstPort == {Port}", _sharedCts.Token);
+                if (result != StartResult.Success)
+                    throw new InvalidOperationException($"Start failed: {result}");
+
+                _sharedCaptureTask = Task.Run(() => _sharedEngine.RunCaptureLoop(), _sharedCts.Token);
+
+                // Warmup ligero
+                for (int i = 0; i < 100; i++)
+                {
+                    _sharedSocket.Send(_packet);
+                    Thread.Sleep(5); // Delay para no saturar
+                }
+
+                Thread.Sleep(500);
+            }
         }
 
         [GlobalCleanup]
         public void Cleanup()
         {
-            _engine.Stop();
-            _cts.Cancel();
-            try { _captureTask.Wait(2000); } catch { }
-            _engine.Dispose();
-            _cts.Dispose();
-            _socket.Dispose();
+            lock (_lock)
+            {
+                if (!_initialized) return;
+
+                _sharedEngine?.Stop();
+                _sharedCts?.Cancel();
+
+                try { _sharedCaptureTask?.Wait(2000); } catch { }
+
+                _sharedEngine?.Dispose();
+                _sharedCts?.Dispose();
+                _sharedSocket?.Dispose();
+
+                _sharedEngine = null!;
+                _sharedCts = null!;
+                _sharedCaptureTask = null!;
+                _sharedSocket = null!;
+                _initialized = false;
+            }
         }
 
         /// <summary>
@@ -84,13 +139,13 @@ namespace NetShaper.Benchmarks
 
             for (int i = 0; i < SampleCount; i++)
             {
-                long baseline = _engine.PacketCount;
+                long baseline = _sharedEngine.PacketCount;
                 long start = Stopwatch.GetTimestamp();
 
-                _socket.Send(_packet);
+                _sharedSocket.Send(_packet);
 
                 // Esperar hasta que el paquete sea procesado
-                while (_engine.PacketCount == baseline)
+                while (_sharedEngine.PacketCount == baseline)
                 {
                     Thread.SpinWait(50);
                 }
@@ -131,18 +186,18 @@ namespace NetShaper.Benchmarks
 
             for (int i = 0; i < SampleCount; i++)
             {
-                long baseline = _engine.PacketCount;
+                long baseline = _sharedEngine.PacketCount;
                 long start = Stopwatch.GetTimestamp();
 
                 // Esperar hasta el momento exacto de envío
                 while (Stopwatch.GetTimestamp() < nextSend)
                     Thread.SpinWait(10);
 
-                _socket.Send(_packet);
+                _sharedSocket.Send(_packet);
                 nextSend += intervalTicks;
 
                 // Esperar procesamiento
-                while (_engine.PacketCount == baseline)
+                while (_sharedEngine.PacketCount == baseline)
                 {
                     Thread.SpinWait(50);
                 }

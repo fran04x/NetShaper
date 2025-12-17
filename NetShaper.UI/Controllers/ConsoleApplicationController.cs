@@ -6,9 +6,14 @@ using NetShaper.UI.Views;
 
 namespace NetShaper.UI.Controllers
 {
-    sealed class ConsoleApplicationController : IApplicationController
+    sealed class ConsoleApplicationController : IApplicationController, IDisposable
     {
-        private readonly EngineController _controller;
+        private const int ShutdownDelayMilliseconds = 300;
+        private const int KeyPollIntervalMilliseconds = 50;
+
+        private readonly IEngine _engine;
+        private readonly IPacketLogger _logger;
+        private readonly IConsoleView _view;
 
         public ConsoleApplicationController(IEngine engine, IPacketLogger logger, IConsoleView consoleView)
         {
@@ -16,14 +21,32 @@ namespace NetShaper.UI.Controllers
             ArgumentNullException.ThrowIfNull(logger);
             ArgumentNullException.ThrowIfNull(consoleView);
 
-            _controller = new EngineController(engine, logger, consoleView);
+            _engine = engine;
+            _logger = logger;
+            _view = consoleView;
+        }
+
+        private static void DrawMenu()
+        {
+            Console.Clear();
+            Console.WriteLine("═══════════════════════════════════════");
+            Console.WriteLine("   NetShaper - Packet Shaping Monitor");
+            Console.WriteLine("═══════════════════════════════════════");
+            Console.WriteLine();
+            Console.WriteLine("⚠️  IMPORTANTE: Debe ejecutarse como ADMINISTRADOR");
+            Console.WriteLine();
+            Console.WriteLine("1. Start  - Iniciar captura de paquetes");
+            Console.WriteLine("3. Exit   - Salir del programa");
+            Console.WriteLine();
+            Console.WriteLine("Filtro: ip and (tcp or udp)");
+            Console.WriteLine();
         }
 
         public async Task<int> RunAsync(CancellationToken ct)
         {
             while (!ct.IsCancellationRequested)
             {
-                if (_controller.IsRunning)
+                if (_engine.IsRunning)
                 {
                     // RUNNING STATE: Show stats, wait for ESC
                     await RunningStateAsync(ct);
@@ -72,27 +95,50 @@ namespace NetShaper.UI.Controllers
             Console.WriteLine("Estadísticas:");
             Console.WriteLine();
 
+            _view.Initialize();
+
+            long lastPacketCount = 0;
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            long lastUpdateMs = 0;
+
             // Wait for ESC while engine is running
-            while (_controller.IsRunning && !ct.IsCancellationRequested)
+            while (_engine.IsRunning && !ct.IsCancellationRequested)
             {
+                long currentMs = stopwatch.ElapsedMilliseconds;
+                if (currentMs - lastUpdateMs >= 500)
+                {
+                    long currentPacketCount = _engine.PacketCount;
+                    long deltaPackets = currentPacketCount - lastPacketCount;
+                    double elapsedSeconds = (currentMs - lastUpdateMs) / 1000.0;
+
+                    if (elapsedSeconds > 0)
+                    {
+                        long pps = (long)(deltaPackets / elapsedSeconds);
+                        _view.UpdateStats(pps, currentPacketCount);
+                    }
+
+                    lastPacketCount = currentPacketCount;
+                    lastUpdateMs = currentMs;
+                }
+
                 if (Console.KeyAvailable)
                 {
                     var key = Console.ReadKey(true).Key;
                     if (key == ConsoleKey.Escape)
                     {
                         HandleStop();
-                        await Task.Delay(300); // Wait for clean shutdown
+                        await Task.Delay(ShutdownDelayMilliseconds);
                         break;
                     }
                 }
                 
-                await Task.Delay(50);
+                await Task.Delay(KeyPollIntervalMilliseconds);
             }
         }
 
         private void HandleStart(CancellationToken ct)
         {
-            StartResult result = _controller.Start("ip and (tcp or udp)", ct);
+            StartResult result = _engine.Start("ip and (tcp or udp)", ct);
             
             if (result != StartResult.Success)
             {
@@ -124,29 +170,21 @@ namespace NetShaper.UI.Controllers
 
         private void HandleStop()
         {
-            _controller.Stop();
+            _engine.Stop();
         }
 
         private async Task<int> HandleExitAsync(CancellationToken ct)
         {
-            await _controller.ShutdownAsync();
+            if (_engine.IsRunning)
+                _engine.Stop();
             return 0;
         }
 
-        private static void DrawMenu()
+
+
+        public void Dispose()
         {
-            Console.Clear();
-            Console.WriteLine("════════════════════════════════════════");
-            Console.WriteLine("   NetShaper - Packet Shaping Monitor");
-            Console.WriteLine("════════════════════════════════════════");
-            Console.WriteLine();
-            Console.WriteLine("⚠️  IMPORTANTE: Debe ejecutarse como ADMINISTRADOR");
-            Console.WriteLine();
-            Console.WriteLine("1. Start  - Iniciar captura de paquetes");
-            Console.WriteLine("3. Exit   - Salir del programa");
-            Console.WriteLine();
-            Console.WriteLine("Filtro: ip and (tcp or udp)");
-            Console.WriteLine();
+            _engine?.Dispose();
         }
     }
 }

@@ -3,6 +3,9 @@
 ## 0. REGLA CERO
 Si una regla no se cumple explícitamente, el resultado es **FAIL**.
 Si existe ambigüedad normativa no resuelta en este documento, el resultado es **FAIL**.
+Cualquier ERROR normativo se corrige en código productivo.
+Modificar analizadores para hacer pasar código existente está prohibido.
+Violación → **FAIL**.
 
 Este documento es la **autoridad técnica suprema** del sistema.
 

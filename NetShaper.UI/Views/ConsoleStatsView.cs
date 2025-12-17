@@ -9,10 +9,17 @@ namespace NetShaper.UI.Views
     /// </summary>
     public sealed class ConsoleStatsView : IConsoleView
     {
-        private readonly int _displayLine;
+        private const int PpsFieldWidth = 10;
+        private const int TotalFieldWidth = 12;
+
+        private int _displayLine;
         private long _lastTotal = 0;
 
         public ConsoleStatsView()
+        {
+        }
+
+        public void Initialize()
         {
             _displayLine = Console.CursorTop;
             Console.WriteLine(); // Reserve line for stats
@@ -26,7 +33,7 @@ namespace NetShaper.UI.Views
             string status = totalPackets > _lastTotal ? "🟢" : (totalPackets > 0 ? "⏸️" : "⚪");
             
             Console.Write(
-                $"{status} PPS: {packetsPerSecond,10:N0} | Total paquetes: {totalPackets,12:N0}   ");
+                $"{status} PPS: {packetsPerSecond,PpsFieldWidth:N0} | Total paquetes: {totalPackets,TotalFieldWidth:N0}   ");
             
             _lastTotal = totalPackets;
         }
