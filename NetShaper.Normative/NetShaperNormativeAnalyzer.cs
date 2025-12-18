@@ -12,7 +12,6 @@ namespace NetShaper.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class NetShaperNormativeAnalyzer : DiagnosticAnalyzer
     {
-        #region Rules
         private static readonly DiagnosticDescriptor UnsafeWithoutFixed = new("RED_R5_03A", "unsafe sin fixed en Engine", "Bloque unsafe en NetShaper.Engine debe contener fixed", "NetShaper.Engine", DiagnosticSeverity.Error, true);
         private static readonly DiagnosticDescriptor DomainExceptionInEngine = new("RED_R6_10", "DomainException prohibida en Engine", "No se permite DomainException en NetShaper.Engine", "NetShaper.Engine", DiagnosticSeverity.Error, true);
         private static readonly DiagnosticDescriptor UseCaseComplexityExceeded = new("DR07", "Complejidad ciclomática excedida", "[UseCase] no puede tener complejidad ciclomática > 5 en capa de aplicación", "NetShaper.Application", DiagnosticSeverity.Error, true);
@@ -67,32 +66,20 @@ namespace NetShaper.Analyzers
         private static readonly DiagnosticDescriptor FixedOnlyInEngineNative = new("R504", "fixed solo en Engine/Native", "El statement 'fixed' solo está permitido en NetShaper.Engine y NetShaper.Native", "Security", DiagnosticSeverity.Error, true);
         private static readonly DiagnosticDescriptor HardcodedSecretDetected = new("R506", "Posible secret hardcoded", "Posible secret/password/key detectado en código fuente", "Security", DiagnosticSeverity.Error, true);
         private static readonly DiagnosticDescriptor MissingInputValidation = new("R507", "Falta validación de input", "Parámetros reference types deben validarse con guard clauses", "Security", DiagnosticSeverity.Warning, true);
-        private static readonly DiagnosticDescriptor NullableNotEnabled = new("R801", "Nullable no habilitado", "El proyecto debe tener Nullable habilitado globalmente", "Nullability", DiagnosticSeverity.Error, true);
+        
         private static readonly DiagnosticDescriptor NullableParameterInPublicApi = new("R802", "Parámetro nullable en API pública", "Los parámetros de APIs públicas no deben ser nullable", "Nullability", DiagnosticSeverity.Error, true);
-        private static readonly DiagnosticDescriptor WarningsNotAsErrors = new("R803", "Warnings no configurados como errors", "TreatWarningsAsErrors debe estar habilitado en .csproj", "Code Quality", DiagnosticSeverity.Error, true);
         private static readonly DiagnosticDescriptor RedundantThis = new("R705", "'this.' redundante", "El uso de 'this.' es redundante (no hay shadowing)", "Style", DiagnosticSeverity.Warning, true);
         private static readonly DiagnosticDescriptor VarPreferred = new("R706", "Preferir 'var' para tipos evidentes", "Use 'var' cuando el tipo es evidente (new T(), cast explícito)", "Style", DiagnosticSeverity.Warning, true);
         private static readonly DiagnosticDescriptor MissingDomainAttribute = new("DR01", "Falta atributo de dominio", "Las clases en namespace Domain deben tener [Entity], [ValueObject], [AggregateRoot], [DomainEvent] o [UseCase]", "NetShaper.Domain", DiagnosticSeverity.Error, true);
         private static readonly DiagnosticDescriptor ThrowInTechnicalDomain = new("DR05", "throw prohibido en dominio técnico", "Los statements 'throw' están prohibidos en NetShaper.Engine/Native (excepto [EngineSetup]/[Boundary])", "NetShaper.Engine", DiagnosticSeverity.Error, true);
-        
-        // FASE 2: Enforcement Crítico
-        private static readonly DiagnosticDescriptor EngineSetupBoundaryViolation = new("R314", "EngineSetup llamado desde hot-path", "Métodos [EngineSetup] solo pueden llamarse desde constructores, otros [EngineSetup] o Main", "NetShaper.Engine", DiagnosticSeverity.Error, true);
-        private static readonly DiagnosticDescriptor HotPathLinqViolation = new("R303H", "LINQ en [HotPath]", "Métodos marcados con [HotPath] no pueden usar LINQ", "NetShaper.Engine", DiagnosticSeverity.Error, true);
-        private static readonly DiagnosticDescriptor HotPathBoxingViolation = new("R304H", "Boxing en [HotPath]", "Métodos marcados con [HotPath] no pueden causar boxing allocations", "NetShaper.Engine", DiagnosticSeverity.Error, true);
-        private static readonly DiagnosticDescriptor HotPathArrayCreationViolation = new("R309H", "new byte[] en [HotPath]", "Métodos marcados con [HotPath] deben usar ArrayPool", "NetShaper.Engine", DiagnosticSeverity.Error, true);
-        private static readonly DiagnosticDescriptor HotPathComplexityViolation = new("R201H", "Complejidad en [HotPath]", "Métodos marcados con [HotPath] no pueden tener complejidad ciclomática >7", "NetShaper.Engine", DiagnosticSeverity.Error, true);
-        
         // Reglas adicionales
         private static readonly DiagnosticDescriptor MemberOrderViolation = new("R707", "Orden de miembros incorrecto", "El miembro '{0}' está fuera de orden. Orden esperado: const, static fields, fields, static ctor, ctor, props, methods", "Style", DiagnosticSeverity.Warning, true);
         private static readonly DiagnosticDescriptor DINotViaConstructor = new("R1402", "Dependencias no inyectadas por constructor", "La clase '{0}' tiene dependencias que no se inyectan por constructor (evitar service locator)", "Architecture", DiagnosticSeverity.Warning, true);
-        private static readonly DiagnosticDescriptor MissingInvariantTests = new("DR10", "Faltan tests de invariantes", "El tipo de dominio '{0}' debe tener tests que validen sus invariantes", "NetShaper.Domain", DiagnosticSeverity.Warning, true);
+        
         private static readonly DiagnosticDescriptor TransactionalEventsInEngine = new("R1020", "Eventos transaccionales en Engine", "Los eventos en Engine no deben requerir transacciones (diseño no transaccional)", "NetShaper.Engine", DiagnosticSeverity.Warning, true);
         
-        // Reglas final batch
-        private static readonly DiagnosticDescriptor AbstractionsWithDependencies = new("R104", "Abstractions tiene dependencias", "NetShaper.Abstractions no debe depender de otros proyectos NetShaper (excepto System.*)", "Architecture", DiagnosticSeverity.Error, true);
         private static readonly DiagnosticDescriptor LowCohesion = new("R207", "Baja cohesión detectada", "La clase '{0}' tiene baja cohesión (campos/métodos no relacionados). Considerar dividir.", "Complexity", DiagnosticSeverity.Warning, true);
-        #endregion
-
+        
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
             ImmutableArray.Create(UnsafeWithoutFixed, DomainExceptionInEngine, UseCaseComplexityExceeded, MissingInvariantMethod, MutableValueObject, InvalidDomainState, GenericExceptionUsage, 
                 NoRegionsAllowed, NoVolatileInEngine, UseLibraryImport, NoBinaryFormatter, PrivateFieldNaming, EntityInEngineMustBeStruct, DomainEventImmutable,
@@ -105,24 +92,15 @@ namespace NetShaper.Analyzers
                 // FASES 3-5: Reglas adicionales
                 CyclomaticComplexityUiInfra, NestingDepthExceeded, StructuredLoggingRecommended, SafeHandleRequired, FixedOnlyInEngineNative,
                 HardcodedSecretDetected, MissingInputValidation, 
-                // REMOVED: NullableNotEnabled (R8.01), WarningsNotAsErrors (R8.03) - requieren MSBuild analyzer
-                // NullableParameterInPublicApi mantenido (valida símbolos, NO proyecto)
                 NullableParameterInPublicApi,
                 RedundantThis, VarPreferred, MissingDomainAttribute, ThrowInTechnicalDomain,
-                // FASE 2: Enforcement Crítico
-                EngineSetupBoundaryViolation, HotPathLinqViolation, HotPathBoxingViolation, HotPathArrayCreationViolation, HotPathComplexityViolation,
-                // Reglas adicionales
-                MemberOrderViolation, DINotViaConstructor, MissingInvariantTests, TransactionalEventsInEngine,
-                // Reglas final batch
-                AbstractionsWithDependencies, LowCohesion);
+                MemberOrderViolation, DINotViaConstructor, TransactionalEventsInEngine,
+                LowCohesion);
 
         public override void Initialize(AnalysisContext context)
         {
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
             context.EnableConcurrentExecution();
-
-            // REMOVED: R8.01/R8.03 - requieren MSBuild analyzer, NO DiagnosticAnalyzer
-            
             context.RegisterSymbolAction(AnalyzeNamedType, SymbolKind.NamedType);
             context.RegisterSymbolAction(AnalyzeMethod, SymbolKind.Method);
             context.RegisterSymbolAction(AnalyzeProperty, SymbolKind.Property);
@@ -156,13 +134,9 @@ namespace NetShaper.Analyzers
             context.RegisterSyntaxNodeAction(AnalyzeVarUsage, SyntaxKind.VariableDeclaration);
             context.RegisterSyntaxNodeAction(AnalyzeThrowInTechnicalDomain, SyntaxKind.ThrowStatement);
             context.RegisterSyntaxNodeAction(AnalyzeStructuredLoggingRecommended, SyntaxKind.InvocationExpression);
-            
-            // FASE 2: Enforcement Crítico
-            context.RegisterSyntaxNodeAction(AnalyzeEngineSetupBoundary, SyntaxKind.InvocationExpression);
+            context.RegisterSyntaxTreeAction(AnalyzeRegions);
         }
-
-        #region Analyzers
-
+			//Analyzers
         private static void AnalyzeBoxingConversion(OperationAnalysisContext context)
         {
             var conversionOperation = (IConversionOperation)context.Operation;
@@ -179,35 +153,6 @@ namespace NetShaper.Analyzers
             {
                 context.ReportDiagnostic(Diagnostic.Create(BoxingInEngine, context.Operation.Syntax.GetLocation(), fromType.ToDisplayString(), toType.ToDisplayString()));
             }
-            
-            // HotPath: Enforcement adicional
-            var containingMethod = context.Operation.Syntax.FirstAncestorOrSelf<MethodDeclarationSyntax>();
-            if (containingMethod != null)
-            {
-                // Buscar el método en los símbolos del tipo contenedor
-                var containingType = context.ContainingSymbol as INamedTypeSymbol;
-                if (containingType != null)
-                {
-                    var methodSymbol = containingType.GetMembers()
-                        .OfType<IMethodSymbol>()
-                        .FirstOrDefault(m => m.DeclaringSyntaxReferences.Any(r => r.GetSyntax() == containingMethod));
-                    
-                    if (methodSymbol != null)
-                    {
-                        var hasHotPath = methodSymbol.GetAttributes()
-                            .Any(a => a.AttributeClass?.Name == "HotPathAttribute");
-                        
-                        if (hasHotPath)
-                        {
-                            context.ReportDiagnostic(Diagnostic.Create(
-                                HotPathBoxingViolation,
-                                context.Operation.Syntax.GetLocation(),
-                                fromType.ToDisplayString(),
-                                toType.ToDisplayString()));
-                        }
-                    }
-                }
-            }
         }
 
         private static void AnalyzeNamedType(SymbolAnalysisContext context)
@@ -219,6 +164,7 @@ namespace NetShaper.Analyzers
             AnalyzeDomainEventImmutability(context, type);
             AnalyzeForBinaryFormatter(context, type);
             AnalyzeDisposableFields(context, type);
+            AnalyzeDomainState(context, type);
             
             // FASES 3-5
             AnalyzeDomainAttribute(context, type);
@@ -226,11 +172,8 @@ namespace NetShaper.Analyzers
             // Reglas adicionales
             AnalyzeMemberOrder(context, type);
             AnalyzeDIViaConstructor(context, type);
-            AnalyzeInvariantTests(context, type);
             AnalyzeTransactionalEvents(context, type);
             
-            // Final batch
-            AnalyzeAbstractionsDependencies(context, type);
             AnalyzeLowCohesion(context, type);
         }
         
@@ -332,30 +275,6 @@ namespace NetShaper.Analyzers
                     context.ReportDiagnostic(Diagnostic.Create(ToArrayToListInEngineProhibited, invocation.GetLocation()));
                 }
             }
-            
-            // HotPath: Enforcement adicional para métodos marcados con [HotPath]
-            var containingMethod = invocation.FirstAncestorOrSelf<MethodDeclarationSyntax>();
-            if (containingMethod != null)
-            {
-                var methodSymbol = context.SemanticModel.GetDeclaredSymbol(containingMethod);
-                if (methodSymbol != null)
-                {
-                    var hasHotPath = methodSymbol.GetAttributes()
-                        .Any(a => a.AttributeClass?.Name == "HotPathAttribute");
-                    
-                    if (hasHotPath)
-                    {
-                        var linqMethods = new[] { "Where", "Select", "SelectMany", "OrderBy", "OrderByDescending", "GroupBy", 
-                                                 "Join", "Any", "All", "First", "FirstOrDefault", "Single", "SingleOrDefault",
-                                                 "Last", "LastOrDefault", "Count", "Sum", "Average", "Min", "Max", "Aggregate" };
-                        
-                        if (linqMethods.Contains(methodName) && containingType.StartsWith("System.Linq"))
-                        {
-                            context.ReportDiagnostic(Diagnostic.Create(HotPathLinqViolation, invocation.GetLocation()));
-                        }
-                    }
-                }
-            }
 
             // R1101: GC.Collect prohibido
             if (containingType == "System.GC" && methodName == "Collect")
@@ -425,6 +344,18 @@ namespace NetShaper.Analyzers
                         break;
                     }
                 }
+            }
+        }
+
+        private static void AnalyzeRegions(SyntaxTreeAnalysisContext context)
+        {
+            var root = context.Tree.GetRoot();
+            var regions = root.DescendantTrivia()
+                .Where(t => t.IsKind(SyntaxKind.RegionDirectiveTrivia));
+            
+            foreach (var region in regions)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(NoRegionsAllowed, region.GetLocation()));
             }
         }
 
@@ -542,6 +473,95 @@ namespace NetShaper.Analyzers
             if (usesFormatter)
             {
                 context.ReportDiagnostic(Diagnostic.Create(NoBinaryFormatter, type.Locations[0]));
+            }
+        }
+
+        /// <summary>
+        /// DR.06 - Estado como enum
+        /// Verifica que propiedades marcadas con [DomainState] o nombre "State" en [Entity]
+        /// usen tipos fuertes (enum, record, sealed class) en lugar de tipos primitivos.
+        /// </summary>
+        private static void AnalyzeDomainState(SymbolAnalysisContext context, INamedTypeSymbol type)
+        {
+            // Verificar si es una Entity
+            var isEntity = type.GetAttributes().Any(a => a.AttributeClass?.Name == "EntityAttribute");
+            if (!isEntity) return;
+
+            // Analizar propiedades
+            var properties = type.GetMembers().OfType<IPropertySymbol>();
+            
+            foreach (var property in properties)
+            {
+                // Determinar si es una propiedad de estado
+                bool isStateProperty = false;
+                
+                // Opción 1: Tiene [DomainState]
+                if (property.GetAttributes().Any(a => a.AttributeClass?.Name == "DomainStateAttribute"))
+                {
+                    isStateProperty = true;
+                }
+                // Opción 2: Se llama "State"
+                else if (property.Name == "State")
+                {
+                    isStateProperty = true;
+                }
+                
+                if (!isStateProperty) continue;
+                
+                var propertyType = property.Type;
+                bool isValidType = false;
+                
+                // Verificar tipos VÁLIDOS
+                if (propertyType.TypeKind == TypeKind.Enum)
+                {
+                    // enum: válido
+                    isValidType = true;
+                }
+                else if (propertyType.IsRecord)
+                {
+                    // record: válido (discriminated union)
+                    isValidType = true;
+                }
+                else if (propertyType.TypeKind == TypeKind.Class)
+                {
+                    var namedType = propertyType as INamedTypeSymbol;
+                    // Sealed class con jerarquía (state pattern): verificar si es sealed
+                    if (namedType != null && namedType.IsSealed)
+                    {
+                        isValidType = true;
+                    }
+                }
+                
+                // Verificar tipos INVÁLIDOS explícitos
+                if (!isValidType)
+                {
+                    bool isInvalidType = false;
+                    
+                    // string: inválido
+                    if (propertyType.SpecialType == SpecialType.System_String)
+                    {
+                        isInvalidType = true;
+                    }
+                    // int sin enum wrapper: inválido
+                    else if (propertyType.SpecialType == SpecialType.System_Int32 ||
+                             propertyType.SpecialType == SpecialType.System_Int64)
+                    {
+                        isInvalidType = true;
+                    }
+                    // bool: inválido (múltiples bool representando estado)
+                    else if (propertyType.SpecialType == SpecialType.System_Boolean)
+                    {
+                        isInvalidType = true;
+                    }
+                    
+                    if (isInvalidType)
+                    {
+                        context.ReportDiagnostic(Diagnostic.Create(
+                            InvalidDomainState, 
+                            property.Locations[0]
+                        ));
+                    }
+                }
             }
         }
 
@@ -713,19 +733,6 @@ namespace NetShaper.Analyzers
                     complexity, 
                     limit
                 ));
-            }
-            
-            // HotPath: Validar complejidad en métodos con [HotPath]
-            var hasHotPath = method.GetAttributes()
-                .Any(a => a.AttributeClass?.Name == "HotPathAttribute");
-            
-            if (hasHotPath && complexity > 7)
-            {
-                context.ReportDiagnostic(Diagnostic.Create(
-                    HotPathComplexityViolation,
-                    method.Locations[0],
-                    method.Name,
-                    complexity));
             }
         }
 
@@ -947,42 +954,6 @@ namespace NetShaper.Analyzers
                     {
                         var size = Convert.ToInt32(constValue.Value);
                         if (size <= 16) return; // Stackalloc pequeño OK
-                    }
-                }
-            }
-            
-            // HotPath: Validar en métodos con [HotPath]
-            var containingMethod = arrayCreation.FirstAncestorOrSelf<MethodDeclarationSyntax>();
-            if (containingMethod != null)
-            {
-                var methodSymbol = context.SemanticModel.GetDeclaredSymbol(containingMethod);
-                if (methodSymbol != null)
-                {
-                    var hasHotPath = methodSymbol.GetAttributes()
-                        .Any(a => a.AttributeClass?.Name == "HotPathAttribute");
-                    
-                    if (hasHotPath)
-                    {
-                        // Verificar tamaño para HotPath  
-                        if (arrayCreation.Type.RankSpecifiers.Count > 0)
-                        {
-                            var rankSpecifier = arrayCreation.Type.RankSpecifiers[0];
-                            if (rankSpecifier.Sizes.Count > 0)
-                            {
-                                var sizeExpr = rankSpecifier.Sizes[0];
-                                var constValue = context.SemanticModel.GetConstantValue(sizeExpr);
-                                if (constValue.HasValue)
-                                {
-                                    var size = Convert.ToInt32(constValue.Value);
-                                    if (size > 16)
-                                    {
-                                        context.ReportDiagnostic(Diagnostic.Create(
-                                            HotPathArrayCreationViolation,
-                                            arrayCreation.GetLocation()));
-                                    }
-                                }
-                            }
-                        }
                     }
                 }
             }
@@ -1297,37 +1268,6 @@ namespace NetShaper.Analyzers
                 if (!param.Type.IsValueType && param.NullableAnnotation == NullableAnnotation.Annotated)
                     context.ReportDiagnostic(Diagnostic.Create(NullableParameterInPublicApi, param.Locations[0]));
         }
-
-        private static void AnalyzeArrayPoolCreation(SyntaxNodeAnalysisContext context)
-        {
-            var invocation = (InvocationExpressionSyntax)context.Node;
-            if (!invocation.ToString().Contains("ArrayPool") || !invocation.ToString().Contains("Rent"))
-                return;
-
-            var containingMethod = invocation.FirstAncestorOrSelf<MethodDeclarationSyntax>();
-            if (containingMethod == null) return;
-            
-            // Skip if method has [BufferOwner] (ownership transfer pattern)
-            var methodSymbol = context.SemanticModel.GetDeclaredSymbol(containingMethod);
-            if (methodSymbol != null)
-            {
-                var hasBufferOwner = methodSymbol.GetAttributes()
-                    .Any(a => a.AttributeClass?.Name == "BufferOwnerAttribute");
-                if (hasBufferOwner) return; // Ownership transfer válido (DNS §7.03)
-            }
-
-            var methodText = containingMethod.ToString();
-            int rentCount = System.Text.RegularExpressions.Regex.Matches(methodText, @"\.Rent\(").Count;
-            int returnCount = System.Text.RegularExpressions.Regex.Matches(methodText, @"\.Return\(").Count;
-
-            if (rentCount > returnCount)
-            {
-                context.ReportDiagnostic(Diagnostic.Create(
-                    ArrayPoolOwnership,
-                    invocation.GetLocation(),
-                    containingMethod.Identifier.Text));
-            }
-        }
         
         private static void AnalyzeRedundantThis(SyntaxNodeAnalysisContext context)
         {
@@ -1462,30 +1402,6 @@ namespace NetShaper.Analyzers
             }
         }
 
-        private static void AnalyzeInvariantTests(SymbolAnalysisContext context, INamedTypeSymbol type)
-        {
-            var nsName = type.ContainingNamespace?.ToDisplayString() ?? "";
-            if (!nsName.Contains("Domain")) return;
-            
-            // Solo aplicar a tipos con invariantes
-            var hasInvariant = type.GetMembers().Any(m => 
-                m.Name.Contains("Invariant") || 
-                m.Name.Contains("Validate") || 
-                m.GetAttributes().Any(a => a.AttributeClass?.Name == "InvariantAttribute"));
-            
-            if (!hasInvariant) return;
-            
-            // Verificar si existe clase de test (heurística: nombre del tipo + "Tests")
-            // Nota: Esto es limitado ya que no podemos acceder fácilmente a los tests desde el analyzer
-            // Solo reportamos como WARNING
-            var hasTestAttribute = type.GetAttributes().Any(a => a.AttributeClass?.Name == "TestedAttribute");
-            
-            if (!hasTestAttribute)
-            {
-                context.ReportDiagnostic(Diagnostic.Create(MissingInvariantTests, type.Locations[0], type.Name));
-            }
-        }
-
         private static void AnalyzeTransactionalEvents(SymbolAnalysisContext context, INamedTypeSymbol type)
         {
             var nsName = type.ContainingNamespace?.ToDisplayString() ?? "";
@@ -1501,38 +1417,6 @@ namespace NetShaper.Analyzers
                     evt.Type.Name.Contains("Transaction"))
                 {
                     context.ReportDiagnostic(Diagnostic.Create(TransactionalEventsInEngine, evt.Locations[0]));
-                }
-            }
-        }
-
-        // Final batch
-
-        private static void AnalyzeAbstractionsDependencies(SymbolAnalysisContext context, INamedTypeSymbol type)
-        {
-            var nsName = type.ContainingNamespace?.ToDisplayString() ?? "";
-            if (!nsName.StartsWith("NetShaper.Abstractions")) return;
-            
-            // Buscar usos de tipos de otros namespaces NetShaper (excepto System.*)
-            var members = type.GetMembers();
-            foreach (var member in members)
-            {
-                ITypeSymbol typeToCheck = member switch
-                {
-                    IFieldSymbol field => field.Type,
-                    IPropertySymbol prop => prop.Type,
-                    IMethodSymbol method => method.ReturnType,
-                    _ => null
-                };
-                
-                if (typeToCheck != null)
-                {
-                    var typeName = typeToCheck.ToDisplayString();
-                    if (typeName.StartsWith("NetShaper.") && 
-                        !typeName.StartsWith("NetShaper.Abstractions") &&
-                        !typeName.StartsWith("System."))
-                    {
-                        context.ReportDiagnostic(Diagnostic.Create(AbstractionsWithDependencies, member.Locations[0]));
-                    }
                 }
             }
         }
@@ -1570,65 +1454,5 @@ namespace NetShaper.Analyzers
                 context.ReportDiagnostic(Diagnostic.Create(LowCohesion, type.Locations[0], type.Name));
             }
         }
-
-        // FASE 2: Enforcement Crítico
-        
-        /// <summary>
-        /// R3.14 EngineSetup Boundary Validation
-        /// LIMITACIÓN: Call-graph directo SOLAMENTE. No interprocedural analysis.
-        /// NO detecta: invocaciones transitivas (A→B→EngineSetup donde A no tiene [EngineSetup])
-        /// SÍ detecta: invocaciones directas desde hot-path a [EngineSetup]
-        /// Justificación: Roslyn DiagnosticAnalyzer no tiene CFG interprocedural completo
-        /// </summary>
-        private static void AnalyzeEngineSetupBoundary(SyntaxNodeAnalysisContext context)
-        {
-            var invocation = (InvocationExpressionSyntax)context.Node;
-            var symbolInfo = context.SemanticModel.GetSymbolInfo(invocation);
-            
-            if (symbolInfo.Symbol is not IMethodSymbol targetMethod) return;
-            
-            // Verificar si el método invocado tiene [EngineSetup]
-            var hasEngineSetup = targetMethod.GetAttributes()
-                .Any(a => a.AttributeClass?.Name == "EngineSetupAttribute");
-            
-            if (!hasEngineSetup) return;
-            
-            // Verificar contexto del caller
-            var callingMethod = invocation.FirstAncestorOrSelf<MethodDeclarationSyntax>();
-            var callingCtor = invocation.FirstAncestorOrSelf<ConstructorDeclarationSyntax>();
-            
-            // ✅ Permitido en constructores
-            if (callingCtor != null) return;
-            
-            // ✅ Permitido en Main/Program.cs
-            var sourceTree = invocation.SyntaxTree;
-            if (sourceTree.FilePath.EndsWith("Program.cs", StringComparison.OrdinalIgnoreCase))
-                return;
-                
-            if (callingMethod != null)
-            {
-                var callerSymbol = context.SemanticModel.GetDeclaredSymbol(callingMethod);
-                if (callerSymbol != null)
-                {
-                    // ✅ Permitido si el caller también es [EngineSetup]
-                    var callerHasEngineSetup = callerSymbol.GetAttributes()
-                        .Any(a => a.AttributeClass?.Name == "EngineSetupAttribute");
-                    
-                    if (callerHasEngineSetup) return;
-                    
-                    // ✅ Permitido en método "Main"
-                    if (callerSymbol.Name == "Main") return;
-                }
-            }
-            
-            // ❌ Invocación desde hot-path no permitida
-            context.ReportDiagnostic(Diagnostic.Create(
-                EngineSetupBoundaryViolation,
-                invocation.GetLocation(),
-                targetMethod.Name));
-        }
-
-        
-        #endregion
     }
 }

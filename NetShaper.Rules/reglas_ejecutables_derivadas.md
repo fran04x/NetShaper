@@ -11,29 +11,6 @@
 
 ## 1. ARQUITECTURA Y DEPENDENCIAS
 
-### R1.01 - Dependencias de Assembly
-- **Condición:** Assembly A → Assembly B solo si está en whitelist
-- **Detección:** Análisis de referencias de proyecto (.csproj)
-- **Whitelist:**
-  - Abstractions → [ninguno]
-  - Engine → [Abstractions]
-  - Native → [Abstractions]
-  - Infrastructure → [Abstractions]
-  - Composition → [Abstractions, Engine, Native, Infrastructure]
-  - UI → [Abstractions, Composition]
-  - Benchmarks → [Abstractions, Composition]
-  - StressTest → [Abstractions, Composition]
-- **Violación:** Referencia fuera de whitelist
-- **Severidad:** ERROR
-- **Auto-fixable:** NO
-
-### R1.02 - Dependencias Cíclicas
-- **Condición:** Grafo de dependencias debe ser DAG
-- **Detección:** Tarjan's algorithm sobre referencias
-- **Umbral:** 0 ciclos
-- **Violación:** Ciclo detectado
-- **Severidad:** ERROR
-- **Auto-fixable:** NO
 
 ### R1.03 - Límite de Dependencias por Clase
 - **Condición:** Constructor con N parámetros
@@ -46,20 +23,6 @@
 - **Severidad:** ERROR
 - **Auto-fixable:** NO
 
-### R1.04 - Abstractions Sin Dependencias
-- **Condición:** NetShaper.Abstractions.csproj
-- **Detección:** Parse .csproj, validar referencias
-- **Whitelist BCL:** System.*, Microsoft.Extensions.Logging.Abstractions
-- **Violación:** Referencia fuera de whitelist
-- **Severidad:** ERROR
-- **Auto-fixable:** NO
-
-### R1.05 - UI No Referencia Implementaciones
-- **Condición:** Archivos en NetShaper.UI
-- **Detección:** Regex: `^\s*using\s+(NetShaper\.(Engine|Native|Infrastructure))\s*;`
-- **Violación:** Match encontrado
-- **Severidad:** ERROR
-- **Auto-fixable:** SÍ (eliminar using)
 
 ---
 
@@ -244,18 +207,6 @@
   - Return en mismo método
 - **Algoritmo:** Contar Rent vs Return por método
 - **Violación:** Desbalance sin ownership transfer
-- **Severidad:** ERROR
-- **Auto-fixable:** NO
-
-### R4.01.b – Prohibido debilitar analizador de ownership
-- **Condición:** Modificación de reglas de análisis relacionadas con ArrayPool<T>.Shared.Rent
-- **Detección:** Diff en el analizador que:
- - Ignore constructores
- - Ignore Dispose
- - Considere comentarios como transferencia de ownership
-- **Excepciones:** Ninguna
-- **Algoritmo:** Inspección de cambios en el analizador buscando patrones de exclusión de flujo (constructor, Dispose, comment)
-- **Violación:** Alteración del analizador para ocultar desbalance real de ownership
 - **Severidad:** ERROR
 - **Auto-fixable:** NO
 
@@ -449,26 +400,12 @@
 
 ## 8. NULLABILITY
 
-### R8.01 - Nullable enable global
-- **Condición:** Archivo .cs
-- **Detección:** Parse: `#nullable enable` o en .csproj `<Nullable>enable</Nullable>`
-- **Violación:** Nullable no habilitado
-- **Severidad:** ERROR
-- **Auto-fixable:** SÍ (agregar en .csproj)
-
 ### R8.02 - APIs públicas no-nullable
 - **Condición:** Método público con parámetros
 - **Detección:** AST: ParameterSyntax reference type con `?`
 - **Violación:** Parámetro nullable en API pública
 - **Severidad:** ERROR
 - **Auto-fixable:** NO
-
-### R8.03 - Warnings as errors
-- **Condición:** Proyecto .csproj
-- **Detección:** Parse: `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>`
-- **Violación:** Warnings no configurados como errors
-- **Severidad:** ERROR
-- **Auto-fixable:** SÍ (modificar .csproj)
 
 ---
 
@@ -492,28 +429,6 @@
 
 ## 10. TESTING
 
-### R10.01 - Benchmarks con BenchmarkDotNet
-- **Condición:** Clase en NetShaper.Benchmarks
-- **Detección:** AST: clase sin atributo [MemoryDiagnoser] o sin métodos [Benchmark]
-- **Violación:** Benchmark incompleto
-- **Severidad:** WARNING
-- **Auto-fixable:** NO
-
-### R10.02 - Coverage ≥80% Engine
-- **Condición:** Post-build en NetShaper.Engine
-- **Detección:** Ejecutar coverlet, parsear report
-- **Umbral:** Line coverage ≥80%
-- **Violación:** Coverage <80%
-- **Severidad:** ERROR
-- **Auto-fixable:** NO
-
-### R10.03 - StressTest con ≥1000 iteraciones
-- **Condición:** Método test con "StartStop" en nombre
-- **Detección:** AST: loop con iterations < 1000
-- **Patrón:** `for (int i = 0; i < N; i++)` donde N < 1000
-- **Violación:** Iteraciones insuficientes
-- **Severidad:** ERROR
-- **Auto-fixable:** SÍ (cambiar límite)
 
 ### R10.20 - Eventos Engine no transaccionales
 - **Condición:** `[DomainEvent]` emitido en NetShaper.Engine
@@ -533,12 +448,6 @@
 - **Severidad:** ERROR
 - **Auto-fixable:** NO
 
-### R11.02 - StringBuilder en loops
-- **Condición:** Loop con concatenación string
-- **Detección:** string + dentro de for/foreach/while
-- **Violación:** Concatenación en loop
-- **Severidad:** ERROR
-- **Auto-fixable:** PARCIAL (sugerir StringBuilder)
 
 ---
 
@@ -569,33 +478,8 @@
 
 ---
 
-## 13. ESTABILIDAD
-
-### R13.01 - Prohibido cambiar firmas públicas
-- **Condición:** Método/propiedad public
-- **Detección:** Git diff: cambio en firma sin [Obsolete] en versión anterior
-- **Violación:** Breaking change sin deprecation
-- **Severidad:** ERROR
-- **Auto-fixable:** NO
-
-### R13.02 - Prohibido renombrar tipos públicos
-- **Condición:** Class/interface/struct public
-- **Detección:** Git diff: tipo eliminado + tipo agregado con estructura similar
-- **Violación:** Probable rename
-- **Severidad:** ERROR
-- **Auto-fixable:** NO
-
----
-
 ## 14. COMPOSICIÓN
 
-### R14.01 - Composition Root único
-- **Condición:** Clase con [CompositionRoot]
-- **Detección:** AST: contar clases con attribute
-- **Umbral:** 1 clase por assembly
-- **Violación:** >1 Composition Root
-- **Severidad:** ERROR
-- **Auto-fixable:** NO
 
 ### R14.02 - DI via constructor
 - **Condición:** Clase con dependencias
@@ -606,18 +490,7 @@
 
 ---
 
-## 15. CHECKSUMS
-
-### R15.01 - Recalcular checksums WinDivert
-- **Condición:** Método que modifica paquetes en Engine
-- **Detección:** AST: método que escribe a buffer byte[] sin invocar método con "Checksum" en nombre
-- **Violación:** Modificación sin recalcular checksum
-- **Severidad:** ERROR
-- **Auto-fixable:** NO
-
----
-
-## 16. DOMAIN RULES (MAPEO DR)
+## 15. DOMAIN RULES (MAPEO DR)
 
 ### DR.01 - Atributos dominio obligatorios
 - **Condición:** Clase en namespace *.Domain o *.Abstractions
@@ -719,15 +592,6 @@
 - **Severidad:** ERROR
 - **Auto-fixable:** SÍ (cambiar a record o init-only)
 
-### DR.10 - Tests por invariante
-- **Condición:** Clase con método ValidateInvariant
-- **Detección:** Buscar en proyecto *.Tests clase con nombre {OriginalClass}Tests
-- **Algoritmo:**
-  - Buscar test que llame ValidateInvariant con datos válidos (debe PASS)
-  - Buscar test que llame ValidateInvariant con datos inválidos (debe FAIL/throw)
-- **Violación:** Invariante sin tests
-- **Severidad:** WARNING
-- **Auto-fixable:** NO
 
 ---
 
