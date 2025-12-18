@@ -20,7 +20,7 @@
   </PropertyGroup>
   
   <!-- Agregar analyzer cuando está habilitado -->
-  <ItemGroup Condition="'$(EnableNetShaperAnalyzer)' == 'true' AND '$(MSBuildProjectName)' != 'NetShaper.Normative' AND '$(MSBuildProjectName)' != 'NetShaper.Benchmarks' AND '$(MSBuildProjectName)' != 'NetShaper.StressTest'">
+  <ItemGroup Condition="'$(EnableNetShaperAnalyzer)' == 'true' AND '$(MSBuildProjectName)' != 'NetShaper.Normative'">
     <ProjectReference Include="$(MSBuildThisFileDirectory)NetShaper.Normative\NetShaper.Normative.csproj"
                       OutputItemType="Analyzer"
                       ReferenceOutputAssembly="false"

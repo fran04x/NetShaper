@@ -1,2 +1,3 @@
+dotnet clean
 dotnet build -c Release
 pause

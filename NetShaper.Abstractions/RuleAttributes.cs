@@ -31,12 +31,17 @@ namespace NetShaper.Abstractions
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Constructor)]
     public sealed class JustificationAttribute : Attribute 
     {
-        public string Reason { get; }
-        
         /// <summary>
         /// Creates a justification attribute with the specified reason.
         /// </summary>
         /// <param name="reason">The reason this violation is acceptable.</param>
-        public JustificationAttribute(string reason) => Reason = reason;
+        public JustificationAttribute(string reason)
+        {
+            if (reason == null)
+                throw new ArgumentNullException(nameof(reason));
+            Reason = reason;
+        }
+        
+        public string Reason { get; }
     }
 }

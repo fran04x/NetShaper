@@ -10,6 +10,7 @@ namespace NetShaper.UI.Controllers
     {
         private const int ShutdownDelayMilliseconds = 300;
         private const int KeyPollIntervalMilliseconds = 50;
+        private const int StatsRefreshIntervalMilliseconds = 500;
 
         private readonly IEngine _engine;
         private readonly IPacketLogger _logger;
@@ -105,7 +106,7 @@ namespace NetShaper.UI.Controllers
             while (_engine.IsRunning && !ct.IsCancellationRequested)
             {
                 long currentMs = stopwatch.ElapsedMilliseconds;
-                if (currentMs - lastUpdateMs >= 500)
+                if (currentMs - lastUpdateMs >= StatsRefreshIntervalMilliseconds)
                 {
                     long currentPacketCount = _engine.PacketCount;
                     long deltaPackets = currentPacketCount - lastPacketCount;
@@ -113,7 +114,7 @@ namespace NetShaper.UI.Controllers
 
                     if (elapsedSeconds > 0)
                     {
-                        long pps = (long)(deltaPackets / elapsedSeconds);
+                        var pps = (long)(deltaPackets / elapsedSeconds);
                         _view.UpdateStats(pps, currentPacketCount);
                     }
 

@@ -7,7 +7,7 @@ import math
 ROOT_DIR = '.'
 EXTENSIONS = ['.cs']
 IGNORE_DIRS = {'bin', 'obj', '.git', '.vs', '.idea', 'Properties', 'node_modules'}
-OUTPUT_FILE = 'analisis.proyecto.d.txt'
+OUTPUT_FILE = 'analisis.proyecto.txt'
 BG_COLOR = "#ffffff"
 
 # --- PROMPTS PREDEFINIDOS ---

@@ -1,0 +1,358 @@
+
+
+# CONTEXTO: 10 ARCHIVOS - CÓDIGO FUENTE COMPLETO
+- NetShaper.Abstractions\IApplicationController.cs
+- NetShaper.Abstractions\IEngine.cs
+- NetShaper.Abstractions\IPacketCapture.cs
+- NetShaper.Abstractions\IPacketLogger.cs
+- NetShaper.Abstractions\NetShaper.Abstractions.csproj
+- NetShaper.Abstractions\NormativeAttributes.cs
+- NetShaper.Abstractions\PacketCaptureConstants.cs
+- NetShaper.Abstractions\PacketLogEntry.cs
+- NetShaper.Abstractions\RuleAttributes.cs
+- NetShaper.Abstractions\WrapperResult.cs
+
+# CONTENIDO
+<codebase>
+<file path="NetShaper.Abstractions\IApplicationController.cs">
+<![CDATA[
+// NetShaper.Abstractions/IApplicationController.cs
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace NetShaper.Abstractions
+{
+    public interface IApplicationController
+    {
+        Task<int> RunAsync(CancellationToken ct);
+    }
+}
+]]>
+</file>
+<file path="NetShaper.Abstractions\IEngine.cs">
+<![CDATA[
+namespace NetShaper.Abstractions
+{
+    public interface IEngine : System.IDisposable
+    {
+        bool IsRunning { get; }
+        long PacketCount { get; }
+
+        StartResult Start(string filter, System.Threading.CancellationToken ct = default);
+        void Stop();
+        EngineResult RunCaptureLoop();
+    }
+
+    public enum StartResult
+    {
+        Success = 0,
+        InvalidFilter = 1,
+        AlreadyRunning = 2,
+        Disposed = 3,
+        OpenFailed = 4
+    }
+
+    public enum EngineResult
+    {
+        Success = 0,
+        Stopped = 1,
+        InvalidState = 2,
+        InvalidHandle = 3,
+        InvalidParameter = 4,
+        Aborted = 5,
+        TooManyErrors = 6
+    }
+}
+]]>
+</file>
+<file path="NetShaper.Abstractions\IPacketCapture.cs">
+<![CDATA[
+// NetShaper.Abstractions/IPacketCapture.cs
+using System;
+using System.Runtime.InteropServices;
+
+namespace NetShaper.Abstractions
+{
+    public interface IPacketCapture : IDisposable
+    {
+        CaptureResult Open(string filter);
+        CaptureResult Receive(Span<byte> buffer, out uint length, ref PacketMetadata metadata);
+        CaptureResult ReceiveBatch(Span<byte> buffer, Span<PacketMetadata> metadataArray, out uint batchLength, out int packetCount);
+        CaptureResult Send(ReadOnlySpan<byte> buffer, ref PacketMetadata metadata);
+        void Shutdown();
+        void CalculateChecksums(Span<byte> buffer, uint length, ref PacketMetadata metadata);
+    }
+
+    public enum CaptureResult
+    {
+        Success = 0,
+        InvalidFilter = 1,
+        InvalidHandle = 2,
+        InvalidParameter = 3,
+        OperationAborted = 4,
+        ElementNotFound = 5,
+        BufferTooSmall = 6,
+        Unknown = 99
+    }
+
+    /// <summary>
+    /// Packet metadata structure.
+    /// Layout matches WINDIVERT_ADDRESS (WinDivert 2.2) for zero-copy interop.
+    /// StructLayout is acceptable here as it defines a performance-critical contract.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public struct PacketMetadata
+    {
+        public long Timestamp;
+        public uint InterfaceIndex;
+        public uint SubInterfaceIndex;
+        public byte Direction;
+        public byte Loopback;
+        public byte Impostor;
+        public byte IpChecksum;
+        public byte TcpChecksum;
+        public byte UdpChecksum;
+        public ushort Reserved1;
+        public uint Reserved2;
+        
+        // BATCH MODE SUPPORT: Length of packet in batch (populated by ReceiveBatch)
+        public uint Length;
+    }
+}
+]]>
+</file>
+<file path="NetShaper.Abstractions\IPacketLogger.cs">
+<![CDATA[
+namespace NetShaper.Abstractions
+{
+    public interface IPacketLogger
+    {
+        void Log(in PacketLogEntry entry);
+    }
+}
+]]>
+</file>
+<file path="NetShaper.Abstractions\NetShaper.Abstractions.csproj">
+<![CDATA[
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    
+    <!-- Ruleset personalizado: suprime reglas inapropiadas para Abstractions -->
+    <CodeAnalysisRuleSet>Abstractions.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Memory" Version="4.5.5" />
+  </ItemGroup>
+
+</Project>
+]]>
+</file>
+<file path="NetShaper.Abstractions\NormativeAttributes.cs">
+<![CDATA[
+using System;
+
+namespace NetShaper.Abstractions.Attributes
+{
+    // === Arquitectura ===
+
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
+    public sealed class EngineSetupAttribute : Attribute { }
+
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
+    public sealed class BoundaryAttribute : Attribute { }
+
+    [AttributeUsage(AttributeTargets.Class)]
+    public sealed class CompositionRootAttribute : Attribute { }
+
+    [AttributeUsage(AttributeTargets.Method)]
+    public sealed class HotPathAttribute : Attribute { }
+
+    [AttributeUsage(AttributeTargets.Method)]
+    public sealed class ProtocolParserAttribute : Attribute { }
+
+    [AttributeUsage(AttributeTargets.Method)]
+    public sealed class BatchProcessorAttribute : Attribute { }
+
+    // === Dominio ===
+
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+    public sealed class EntityAttribute : Attribute { }
+
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+    public sealed class ValueObjectAttribute : Attribute { }
+
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+    public sealed class AggregateRootAttribute : Attribute { }
+
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+    public sealed class DomainEventAttribute : Attribute { }
+
+    [AttributeUsage(AttributeTargets.Property)]
+    public sealed class DomainStateAttribute : Attribute { }
+
+    // === Híbridos ===
+
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+    public sealed class EngineDomainAttribute : Attribute { }
+
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+    public sealed class ZeroAllocationDomainAttribute : Attribute { }
+
+    // === Uso / Aplicación ===
+
+    [AttributeUsage(AttributeTargets.Method)]
+    public sealed class UseCaseAttribute : Attribute { }
+
+    // === Infraestructura de memoria ===
+
+    [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.ReturnValue)]
+    public sealed class BufferOwnerAttribute : Attribute { }
+}
+]]>
+</file>
+<file path="NetShaper.Abstractions\PacketCaptureConstants.cs">
+<![CDATA[
+namespace NetShaper.Abstractions
+{
+    /// <summary>
+    /// Constantes compartidas para captura de paquetes y filtros WinDivert.
+    /// </summary>
+    public static class PacketCaptureConstants
+    {
+        /// <summary>
+        /// Longitud máxima permitida para un filtro WinDivert.
+        /// </summary>
+        public const int MaxFilterLength = 1024;
+    }
+}
+]]>
+</file>
+<file path="NetShaper.Abstractions\PacketLogEntry.cs">
+<![CDATA[
+using System.Runtime.InteropServices;
+
+namespace NetShaper.Abstractions
+{
+    [StructLayout(LayoutKind.Sequential)]
+    [NetShaper.Abstractions.Attributes.ValueObject]
+    public readonly struct PacketLogEntry
+    {
+        public readonly long Timestamp;
+        public readonly LogLevel Level;
+        public readonly LogCode Code;
+        public readonly long Value;
+
+        public PacketLogEntry(long timestamp, LogLevel level, LogCode code, long value)
+        {
+            Timestamp = timestamp;
+            Level = level;
+            Code = code;
+            Value = value;
+        }
+
+        // DR.04: Dominio Técnico requiere TryValidateInvariant
+        public bool TryValidateInvariant(out string error)
+        {
+            error = string.Empty;
+            // Logging structs no tienen invariantes complejos - siempre válidos
+            return true;
+        }
+    }
+
+    public enum LogLevel : byte
+    {
+        Info = 0,
+        Warning = 1,
+        Error = 2
+    }
+
+    public enum LogCode : ushort
+    {
+        None = 0,
+        EngineStarted = 1,
+        EngineStopped = 2,
+        PacketProcessed = 3,
+        RecvFailed = 4,
+        SendFailed = 5,
+        InvalidPacket = 6,
+        OperationAborted = 7,
+        InvalidHandle = 8,
+        InvalidParameter = 9
+    }
+}
+]]>
+</file>
+<file path="NetShaper.Abstractions\RuleAttributes.cs">
+<![CDATA[
+// NetShaper.Abstractions/RuleAttributes.cs
+using System;
+
+namespace NetShaper.Abstractions
+{
+    /// <summary>
+    /// Marks methods that are allowed to use async/Task in Engine namespace.
+    /// These are typically initialization or configuration methods that run outside the hot path.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Method)]
+    public sealed class EngineSetupAttribute : Attribute { }
+
+    /// <summary>
+    /// Marks methods or classes that are application boundaries.
+    /// These are allowed to catch generic Exception types.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
+    public sealed class BoundaryAttribute : Attribute { }
+
+    /// <summary>
+    /// Marks a class as the composition root for dependency injection.
+    /// Each assembly should have at most one composition root.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class)]
+    public sealed class CompositionRootAttribute : Attribute { }
+
+    /// <summary>
+    /// Provides justification for rule violations that are acceptable.
+    /// Used to document why a constructor exceeds normal dependency limits, etc.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Constructor)]
+    public sealed class JustificationAttribute : Attribute 
+    {
+        /// <summary>
+        /// Creates a justification attribute with the specified reason.
+        /// </summary>
+        /// <param name="reason">The reason this violation is acceptable.</param>
+        public JustificationAttribute(string reason)
+        {
+            if (reason == null)
+                throw new ArgumentNullException(nameof(reason));
+            Reason = reason;
+        }
+        
+        public string Reason { get; }
+    }
+}
+]]>
+</file>
+<file path="NetShaper.Abstractions\WrapperResult.cs">
+<![CDATA[
+namespace NetShaper.Abstractions
+{
+    public enum WrapperResult
+    {
+        Success = 0,
+        InvalidFilter = 1,
+        InvalidHandle = 2,
+        InvalidParameter = 3,
+        OperationAborted = 4,
+        ElementNotFound = 5,
+        BufferTooSmall = 6,
+        Unknown = 99
+    }
+}
+]]>
+</file>
+</codebase>

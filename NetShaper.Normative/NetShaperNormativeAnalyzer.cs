@@ -1261,6 +1261,10 @@ namespace NetShaper.Analyzers
 
         private static void AnalyzeInputValidation(SymbolAnalysisContext context, IMethodSymbol method)
         {
+			if (method.ContainingType.TypeKind == TypeKind.Interface || method.IsAbstract)
+            {
+                return;
+            }
             if (method.DeclaredAccessibility != Accessibility.Public || method.DeclaringSyntaxReferences.Length == 0) return;
             var syntax = method.DeclaringSyntaxReferences[0].GetSyntax();
             
@@ -1269,6 +1273,9 @@ namespace NetShaper.Analyzers
                 // FIX: Skip value types and ref structs (Span<T>, ReadOnlySpan<T>)
                 if (param.Type.IsValueType || param.Type.IsRefLikeType)
                     continue; // Value types y Span<T> no pueden ser null
+				// FIX: Ignorar parámetros 'out' (son salidas, no entradas a validar)
+                if (param.RefKind == RefKind.Out)
+                    continue;
                     
                 var paramName = param.Name;
                 var paramIdentifier = $"({paramName})";

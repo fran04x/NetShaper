@@ -10,8 +10,8 @@ namespace NetShaper.Infrastructure
 
         public void Log(in PacketLogEntry entry)
         {
-            long ticks = (long)(entry.Timestamp * _tickFrequency);
-            TimeSpan elapsed = new TimeSpan(ticks);
+            var ticks = (long)(entry.Timestamp * _tickFrequency);
+            var elapsed = new TimeSpan(ticks);
 
             string levelStr = entry.Level switch
             {

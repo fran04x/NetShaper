@@ -10,7 +10,6 @@ namespace NetShaper.Engine
 {
     /// <summary>
     /// Multi-threaded batch processing engine using WinDivertRecvEx.
-    /// Achieves 83k PPS with 1 thread, 2.4x improvement over baseline.
     /// </summary>
     public sealed class Engine : IEngine
     {

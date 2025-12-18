@@ -21,13 +21,16 @@ namespace NetShaper.Composition
         /// <returns>The service collection for chaining.</returns>
         public static IServiceCollection AddNetShaperServices(this IServiceCollection services)
         {
+            if (services == null)
+                throw new ArgumentNullException(nameof(services));
+            
             // Register packet logger as singleton (maintains state across application lifetime)
             services.AddSingleton<IPacketLogger, RingBufferPacketLogger>();
             
             // Register packet capture as transient (new instance per engine)
             services.AddTransient<IPacketCapture, WinDivertAdapter>();
             
-            // Register Engine as IEngine (83k PPS with 1 thread, minimal resources)
+            // Register Engine as IEngine
             // Factory pattern: creates fresh IPacketCapture instance per thread
             services.AddTransient<IEngine>(serviceProvider =>
             {
@@ -37,7 +40,7 @@ namespace NetShaper.Composition
                 Func<IPacketCapture> captureFactory = () => 
                     serviceProvider.GetRequiredService<IPacketCapture>();
                 
-                // Default: 1 thread (optimal for Celeron N5100, 83k PPS)
+                // Default: 1 thread
                 // Future: make configurable via settings
                 const int threadCount = 1;
                 

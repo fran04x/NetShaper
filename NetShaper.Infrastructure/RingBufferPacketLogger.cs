@@ -6,11 +6,13 @@ namespace NetShaper.Infrastructure
 {
     public sealed class RingBufferPacketLogger : IPacketLogger
     {
+        private const int DefaultBufferCapacity = 4096;
+        
         private readonly PacketLogEntry[] _buffer;
         private readonly int _mask;
         private int _index;
 
-        public RingBufferPacketLogger(int powerOfTwoSize = 4096)
+        public RingBufferPacketLogger(int powerOfTwoSize = DefaultBufferCapacity)
         {
             if (powerOfTwoSize <= 0)
                 throw new ArgumentOutOfRangeException(nameof(powerOfTwoSize), powerOfTwoSize, "Size must be positive");

@@ -11,6 +11,27 @@ namespace NetShaper.Native
     {
         private const int MaxFilterLength = PacketCaptureConstants.MaxFilterLength;
         private const int ShutdownRecv = 1;
+        
+        // Windows Error Codes
+        private const int ErrorOperationAborted = 995;
+        private const int ErrorInvalidHandle = 6;
+        private const int ErrorInvalidParameter = 87;
+        private const int ErrorNotFound = 1168;
+        
+        // IP Protocol Constants
+        private const int IPv4Version = 4;
+        private const int IPv6Version = 6;
+        private const int IPv6HeaderSize = 40;
+        
+        // Packet Parsing Offsets
+        private const int IPv4TotalLengthOffsetHigh = 2;
+        private const int IPv4TotalLengthOffsetLow = 3;
+        private const int IPv6PayloadLengthOffsetHigh = 4;
+        private const int IPv6PayloadLengthOffsetLow = 5;
+        
+        // Timeouts and Limits
+        private const int DisposeSpinTimeout = 10000;
+        private const int MaxBatchSize = 64;
 
         private WinDivertHandle? _handle;
         private int _disposed;
@@ -25,6 +46,9 @@ namespace NetShaper.Native
         [Boundary]  // Lifecycle method - handles initialization exceptions
         public CaptureResult Open(string filter)
         {
+            if (filter == null)
+                throw new ArgumentNullException(nameof(filter));
+            
             if (Interlocked.CompareExchange(ref _disposed, 0, 0) == 1)
                 return CaptureResult.InvalidHandle;
             if (string.IsNullOrWhiteSpace(filter))
@@ -139,7 +163,6 @@ namespace NetShaper.Native
                 if (buffer.IsEmpty || metadataArray.IsEmpty)
                     return CaptureResult.BufferTooSmall;
 
-                const int MaxBatchSize = 64;
                 int maxPackets = Math.Min(metadataArray.Length, MaxBatchSize);
                 
                 // Stack-allocate WinDivertAddress array for batch
@@ -148,7 +171,7 @@ namespace NetShaper.Native
                 fixed (byte* pBuf = buffer)
                 {
                     uint readLen = 0;  // ← CORRECTED: was ulong
-                    uint addrLen = (uint)(maxPackets * sizeof(WinDivertAddress));
+                    var addrLen = (uint)(maxPackets * sizeof(WinDivertAddress));
                     
                     // Call WinDivertRecvEx (batch mode)
                     bool success = WinDivertRecvExNative(
@@ -302,7 +325,7 @@ namespace NetShaper.Native
 				while (Interlocked.CompareExchange(ref _activeOperations, 0, 0) != 0)
 				{
 					spin.SpinOnce();
-					if (spin.Count > 10000)  // Timeout after ~10ms
+					if (spin.Count > DisposeSpinTimeout)  // Timeout after ~10ms
 						break;  // Force disposal if operations stuck
 				}
 				
@@ -335,10 +358,10 @@ namespace NetShaper.Native
         {
             return code switch
             {
-                995 => CaptureResult.OperationAborted,
-                6 => CaptureResult.InvalidHandle,
-                87 => CaptureResult.InvalidParameter,
-                1168 => CaptureResult.ElementNotFound,
+                ErrorOperationAborted => CaptureResult.OperationAborted,
+                ErrorInvalidHandle => CaptureResult.InvalidHandle,
+                ErrorInvalidParameter => CaptureResult.InvalidParameter,
+                ErrorNotFound => CaptureResult.ElementNotFound,
                 _ => CaptureResult.Unknown
             };
         }
@@ -351,12 +374,12 @@ namespace NetShaper.Native
 
             byte* pPkt = pPacket + offset;
             byte versionIHL = pPkt[0];
-            byte version = (byte)(versionIHL >> 4);
+            var version = (byte)(versionIHL >> 4);
 
             return version switch
             {
-                4 => ParseIPv4Length(pPkt),
-                6 => ParseIPv6Length(pPkt),
+                IPv4Version => ParseIPv4Length(pPkt),
+                IPv6Version => ParseIPv6Length(pPkt),
                 _ => 0
             };
         }
@@ -364,14 +387,14 @@ namespace NetShaper.Native
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static unsafe uint ParseIPv4Length(byte* pPacket)
         {
-            return (uint)((pPacket[2] << 8) | pPacket[3]);
+            return (uint)((pPacket[IPv4TotalLengthOffsetHigh] << 8) | pPacket[IPv4TotalLengthOffsetLow]);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static unsafe uint ParseIPv6Length(byte* pPacket)
         {
-            uint payloadLen = (uint)((pPacket[4] << 8) | pPacket[5]);
-            return 40 + payloadLen;
+            var payloadLen = (uint)((pPacket[IPv6PayloadLengthOffsetHigh] << 8) | pPacket[IPv6PayloadLengthOffsetLow]);
+            return IPv6HeaderSize + payloadLen;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
