@@ -18,6 +18,7 @@
     <ProjectReference Include="..\NetShaper.Infrastructure\NetShaper.Infrastructure.csproj" />
     <ProjectReference Include="..\NetShaper.Engine\NetShaper.Engine.csproj" />
     <ProjectReference Include="..\NetShaper.Native\NetShaper.Native.csproj" />
+    <ProjectReference Include="..\NetShaper.Rules\NetShaper.Rules.csproj" />
   </ItemGroup>
 
   <!-- WinDivert native binaries - deployed with Composition -->

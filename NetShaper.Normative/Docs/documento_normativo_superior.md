@@ -264,6 +264,23 @@ Formateo solo en Infra/UI.
 - Sin regiones
 - Sin TODOs
 
+### 14.04 Convenciones de Nombres
+- Clases, Métodos, Propiedades: PascalCase.
+- Campos privados: _camelCase.
+- Parámetros, variables locales: camelCase.
+- Interfaces: Prefijo 'I'.
+- Métodos async: Sufijo 'Async' obligatorio.
+
+### 14.05 Gestión de Recursos
+- Tipos con recursos unmanaged DEBEN implementar IDisposable.
+- Instancias IDisposable DEBEN ser liberadas (using/Dispose).
+- Clases con campos IDisposable DEBEN implementar IDisposable.
+
+### 14.06 UI y Responsividad (NetShaper.UI)
+- Prohibido bloquear UI Thread (Thread.Sleep, .Wait(), .Result).
+- async void SOLO permitido en Event Handlers.
+- Números mágicos prohibidos en UI lógica.
+
 ---
 
 ## 15. PERFORMANCE

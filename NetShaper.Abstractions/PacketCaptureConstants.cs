@@ -9,5 +9,10 @@ namespace NetShaper.Abstractions
         /// Longitud máxima permitida para un filtro WinDivert.
         /// </summary>
         public const int MaxFilterLength = 1024;
+
+        /// <summary>
+        /// Filtro por defecto para la captura (IP y (TCP o UDP)).
+        /// </summary>
+        public const string DefaultFilter = "ip and (tcp or udp)";
     }
 }

@@ -39,7 +39,7 @@ namespace NetShaper.UI.Controllers
             Console.WriteLine("1. Start  - Iniciar captura de paquetes");
             Console.WriteLine("3. Exit   - Salir del programa");
             Console.WriteLine();
-            Console.WriteLine("Filtro: ip and (tcp or udp)");
+            Console.WriteLine($"Filtro: {PacketCaptureConstants.DefaultFilter}");
             Console.WriteLine();
         }
 
@@ -139,7 +139,7 @@ namespace NetShaper.UI.Controllers
 
         private void HandleStart(CancellationToken ct)
         {
-            StartResult result = _engine.Start("ip and (tcp or udp)", ct);
+            StartResult result = _engine.Start(PacketCaptureConstants.DefaultFilter, ct);
             
             if (result != StartResult.Success)
             {

@@ -12,8 +12,8 @@ namespace NetShaper.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class NetShaperNormativeAnalyzer : DiagnosticAnalyzer
     {
-        private static readonly DiagnosticDescriptor UnsafeWithoutFixed = new("RED_R5_03A", "unsafe sin fixed en Engine", "Bloque unsafe en NetShaper.Engine debe contener fixed", "NetShaper.Engine", DiagnosticSeverity.Error, true);
-        private static readonly DiagnosticDescriptor DomainExceptionInEngine = new("RED_R6_10", "DomainException prohibida en Engine", "No se permite DomainException en NetShaper.Engine", "NetShaper.Engine", DiagnosticSeverity.Error, true);
+        private static readonly DiagnosticDescriptor UnsafeWithoutFixed = new("R503", "unsafe sin fixed en Engine", "Bloque unsafe en NetShaper.Engine debe contener fixed", "NetShaper.Engine", DiagnosticSeverity.Error, true);
+        private static readonly DiagnosticDescriptor DomainExceptionInEngine = new("R610", "DomainException prohibida en Engine", "No se permite DomainException en NetShaper.Engine", "NetShaper.Engine", DiagnosticSeverity.Error, true);
         private static readonly DiagnosticDescriptor UseCaseComplexityExceeded = new("DR07", "Complejidad ciclomática excedida", "[UseCase] no puede tener complejidad ciclomática > 5 en capa de aplicación", "NetShaper.Application", DiagnosticSeverity.Error, true);
         private static readonly DiagnosticDescriptor MissingInvariantMethod = new("DR04", "Invariante no declarada", "Tipo de dominio debe declarar ValidateInvariant / TryValidateInvariant", "NetShaper.Domain", DiagnosticSeverity.Error, true);
         private static readonly DiagnosticDescriptor MutableValueObject = new("DR02", "ValueObject mutable", "[ValueObject] debe ser inmutable", "NetShaper.Domain", DiagnosticSeverity.Error, true);
@@ -43,7 +43,8 @@ namespace NetShaper.Analyzers
         private static readonly DiagnosticDescriptor OneClassPerFile = new("R204", "Un tipo público por archivo", "El archivo contiene más de un tipo público", "Style", DiagnosticSeverity.Error, true);
         private static readonly DiagnosticDescriptor BoxingInEngine = new("R304", "Boxing allocation detectado en Engine", "La conversión de '{0}' a '{1}' causa una asignación de memoria (boxing) en un hot-path", "NetShaper.Engine", DiagnosticSeverity.Error, true);
         private static readonly DiagnosticDescriptor LockInEngineProhibited = new("R306", "Lock prohibido en Engine", "El uso de 'lock' está prohibido en NetShaper.Engine. Use mecanismos sin bloqueo.", "NetShaper.Engine", DiagnosticSeverity.Error, true);
-        private static readonly DiagnosticDescriptor PascalCaseNaming = new("R702", "Propiedades y métodos públicos deben usar PascalCase", "El miembro público '{0}' debe usar PascalCase", "Naming", DiagnosticSeverity.Error, true);
+        private static readonly DiagnosticDescriptor PascalCaseProperty = new("R702", "Propiedades públicas deben usar PascalCase", "La propiedad pública '{0}' debe usar PascalCase", "Naming", DiagnosticSeverity.Error, true);
+        private static readonly DiagnosticDescriptor PascalCaseMethod = new("R703", "Métodos públicos deben usar PascalCase", "El método público '{0}' debe usar PascalCase", "Naming", DiagnosticSeverity.Error, true);
         private static readonly DiagnosticDescriptor MagicNumberProhibited = new("R1203", "Número mágico encontrado", "El número '{0}' es un número mágico. Use constantes con nombres descriptivos.", "Code Quality", DiagnosticSeverity.Warning, true);
         
         // FASE 1+2: Nuevas reglas críticas
@@ -85,7 +86,7 @@ namespace NetShaper.Analyzers
                 NoRegionsAllowed, NoVolatileInEngine, UseLibraryImport, NoBinaryFormatter, PrivateFieldNaming, EntityInEngineMustBeStruct, DomainEventImmutable,
                 AsyncInEngineProhibited, LinqInHotPathProhibited, StringConcatInLoopProhibited, ToArrayToListInEngineProhibited, ExplicitGcCollectProhibited, ThreadSleepInUiProhibited,
                 MissingCancellationToken, MissingAsyncSuffix, DisposableFieldNeedsDisposing, AsyncVoidIsForEventHandlersOnly, EmptyCatchBlockProhibited, NoTodos,
-                ConstructorDependencyLimit, CyclomaticComplexityExceeded, OneClassPerFile, BoxingInEngine, LockInEngineProhibited, PascalCaseNaming, MagicNumberProhibited,
+                ConstructorDependencyLimit, CyclomaticComplexityExceeded, OneClassPerFile, BoxingInEngine, LockInEngineProhibited, PascalCaseProperty, PascalCaseMethod, MagicNumberProhibited,
                 // FASE 1+2: Nuevas reglas
                 TaskInEngineProhibited, DateTimeInEngineProhibited, ExceptionsAsControlFlow, ArrayPoolRequired, SpanMemoryPreferred,
                 ArrayPoolOwnership, BufferSizeNonStandard, StructuredLoggingRequired, CatchExceptionOnlyBoundaries, DisposableWithoutUsing,
@@ -801,7 +802,8 @@ namespace NetShaper.Analyzers
             
             if (string.IsNullOrEmpty(symbol.Name) || !char.IsUpper(symbol.Name[0]))
             {
-                context.ReportDiagnostic(Diagnostic.Create(PascalCaseNaming, symbol.Locations[0], symbol.Name));
+                var descriptor = symbol is IMethodSymbol ? PascalCaseMethod : PascalCaseProperty;
+                context.ReportDiagnostic(Diagnostic.Create(descriptor, symbol.Locations[0], symbol.Name));
             }
         }
 

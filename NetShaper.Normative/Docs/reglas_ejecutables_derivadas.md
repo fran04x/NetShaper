@@ -164,7 +164,7 @@
 ### R3.09 - Obligatorio ArrayPool en Engine
 - **Condición:** `new byte[` en NetShaper.Engine
 - **Detección:** AST: ArrayCreationExpressionSyntax con tipo byte[]
-- **Excepción:** Método con `[EngineSetup]` o tamaño ≤16
+- **Excepción:** Método con `[EngineSetup]`
 - **Violación:** new byte[] sin excepción
 - **Severidad:** ERROR
 - **Auto-fixable:** PARCIAL (sugerir ArrayPool)

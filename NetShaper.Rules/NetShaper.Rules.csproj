@@ -1,18 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-	<ApplicationManifest>app.manifest</ApplicationManifest>
+    <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <WarningsAsErrors>true</WarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- UI should only reference Abstractions and Composition -->
     <ProjectReference Include="..\NetShaper.Abstractions\NetShaper.Abstractions.csproj" />
-    <ProjectReference Include="..\NetShaper.Composition\NetShaper.Composition.csproj" />
   </ItemGroup>
 
 </Project>

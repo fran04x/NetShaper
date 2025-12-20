@@ -1,356 +1,890 @@
 
 
-# CONTEXTO: 10 ARCHIVOS - CÓDIGO FUENTE COMPLETO
-- NetShaper.Abstractions\IApplicationController.cs
-- NetShaper.Abstractions\IEngine.cs
-- NetShaper.Abstractions\IPacketCapture.cs
-- NetShaper.Abstractions\IPacketLogger.cs
-- NetShaper.Abstractions\NetShaper.Abstractions.csproj
-- NetShaper.Abstractions\NormativeAttributes.cs
-- NetShaper.Abstractions\PacketCaptureConstants.cs
-- NetShaper.Abstractions\PacketLogEntry.cs
-- NetShaper.Abstractions\RuleAttributes.cs
-- NetShaper.Abstractions\WrapperResult.cs
+# CONTEXTO: 16 ARCHIVOS - CÓDIGO FUENTE COMPLETO
+- NetShaper.Rules\Rules\AckDelayRule.cs
+- NetShaper.Rules\Rules\BandwidthRule.cs
+- NetShaper.Rules\Rules\BlackholeRule.cs
+- NetShaper.Rules\Rules\BurstRule.cs
+- NetShaper.Rules\Rules\DropRule.cs
+- NetShaper.Rules\Rules\DuplicateRule.cs
+- NetShaper.Rules\Rules\JitterRule.cs
+- NetShaper.Rules\Rules\LagRule.cs
+- NetShaper.Rules\Rules\LossPatternRule.cs
+- NetShaper.Rules\Rules\MtuClampRule.cs
+- NetShaper.Rules\Rules\OutOfOrderRule.cs
+- NetShaper.Rules\Rules\SynDropRule.cs
+- NetShaper.Rules\Rules\TamperRule.cs
+- NetShaper.Rules\Rules\TcpRstRule.cs
+- NetShaper.Rules\Rules\ThrottleRule.cs
+- NetShaper.Rules\Rules\WindowClampRule.cs
 
 # CONTENIDO
 <codebase>
-<file path="NetShaper.Abstractions\IApplicationController.cs">
+<file path="NetShaper.Rules\Rules\AckDelayRule.cs">
 <![CDATA[
-// NetShaper.Abstractions/IApplicationController.cs
-using System.Threading;
-using System.Threading.Tasks;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using NetShaper.Abstractions;
 
-namespace NetShaper.Abstractions
+namespace NetShaper.Rules.Rules
 {
-    public interface IApplicationController
-    {
-        Task<int> RunAsync(CancellationToken ct);
-    }
-}
-]]>
-</file>
-<file path="NetShaper.Abstractions\IEngine.cs">
-<![CDATA[
-namespace NetShaper.Abstractions
-{
-    public interface IEngine : System.IDisposable
-    {
-        bool IsRunning { get; }
-        long PacketCount { get; }
-
-        StartResult Start(string filter, System.Threading.CancellationToken ct = default);
-        void Stop();
-        EngineResult RunCaptureLoop();
-    }
-
-    public enum StartResult
-    {
-        Success = 0,
-        InvalidFilter = 1,
-        AlreadyRunning = 2,
-        Disposed = 3,
-        OpenFailed = 4
-    }
-
-    public enum EngineResult
-    {
-        Success = 0,
-        Stopped = 1,
-        InvalidState = 2,
-        InvalidHandle = 3,
-        InvalidParameter = 4,
-        Aborted = 5,
-        TooManyErrors = 6
-    }
-}
-]]>
-</file>
-<file path="NetShaper.Abstractions\IPacketCapture.cs">
-<![CDATA[
-// NetShaper.Abstractions/IPacketCapture.cs
-using System;
-using System.Runtime.InteropServices;
-
-namespace NetShaper.Abstractions
-{
-    public interface IPacketCapture : IDisposable
-    {
-        CaptureResult Open(string filter);
-        CaptureResult Receive(Span<byte> buffer, out uint length, ref PacketMetadata metadata);
-        CaptureResult ReceiveBatch(Span<byte> buffer, Span<PacketMetadata> metadataArray, out uint batchLength, out int packetCount);
-        CaptureResult Send(ReadOnlySpan<byte> buffer, ref PacketMetadata metadata);
-        void Shutdown();
-        void CalculateChecksums(Span<byte> buffer, uint length, ref PacketMetadata metadata);
-    }
-
-    public enum CaptureResult
-    {
-        Success = 0,
-        InvalidFilter = 1,
-        InvalidHandle = 2,
-        InvalidParameter = 3,
-        OperationAborted = 4,
-        ElementNotFound = 5,
-        BufferTooSmall = 6,
-        Unknown = 99
-    }
-
     /// <summary>
-    /// Packet metadata structure.
-    /// Layout matches WINDIVERT_ADDRESS (WinDivert 2.2) for zero-copy interop.
-    /// StructLayout is acceptable here as it defines a performance-critical contract.
+    /// AckDelay rule: delays ACK packets specifically.
+    /// Useful for simulating slow ACK receiver.
     /// </summary>
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public struct PacketMetadata
+    public static class AckDelayRule
     {
-        public long Timestamp;
-        public uint InterfaceIndex;
-        public uint SubInterfaceIndex;
-        public byte Direction;
-        public byte Loopback;
-        public byte Impostor;
-        public byte IpChecksum;
-        public byte TcpChecksum;
-        public byte UdpChecksum;
-        public ushort Reserved1;
-        public uint Reserved2;
+        private const byte AckFlag = 0x10;
         
-        // BATCH MODE SUPPORT: Length of packet in batch (populated by ReceiveBatch)
-        public uint Length;
-    }
-}
-]]>
-</file>
-<file path="NetShaper.Abstractions\IPacketLogger.cs">
-<![CDATA[
-namespace NetShaper.Abstractions
-{
-    public interface IPacketLogger
-    {
-        void Log(in PacketLogEntry entry);
-    }
-}
-]]>
-</file>
-<file path="NetShaper.Abstractions\NetShaper.Abstractions.csproj">
-<![CDATA[
-<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <LangVersion>latest</LangVersion>
-    
-    <!-- Ruleset personalizado: suprime reglas inapropiadas para Abstractions -->
-    <CodeAnalysisRuleSet>Abstractions.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="System.Memory" Version="4.5.5" />
-  </ItemGroup>
-
-</Project>
-]]>
-</file>
-<file path="NetShaper.Abstractions\NormativeAttributes.cs">
-<![CDATA[
-using System;
-
-namespace NetShaper.Abstractions.Attributes
-{
-    // === Arquitectura ===
-
-    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
-    public sealed class EngineSetupAttribute : Attribute { }
-
-    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
-    public sealed class BoundaryAttribute : Attribute { }
-
-    [AttributeUsage(AttributeTargets.Class)]
-    public sealed class CompositionRootAttribute : Attribute { }
-
-    [AttributeUsage(AttributeTargets.Method)]
-    public sealed class HotPathAttribute : Attribute { }
-
-    [AttributeUsage(AttributeTargets.Method)]
-    public sealed class ProtocolParserAttribute : Attribute { }
-
-    [AttributeUsage(AttributeTargets.Method)]
-    public sealed class BatchProcessorAttribute : Attribute { }
-
-    // === Dominio ===
-
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
-    public sealed class EntityAttribute : Attribute { }
-
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
-    public sealed class ValueObjectAttribute : Attribute { }
-
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
-    public sealed class AggregateRootAttribute : Attribute { }
-
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
-    public sealed class DomainEventAttribute : Attribute { }
-
-    [AttributeUsage(AttributeTargets.Property)]
-    public sealed class DomainStateAttribute : Attribute { }
-
-    // === Híbridos ===
-
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
-    public sealed class EngineDomainAttribute : Attribute { }
-
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
-    public sealed class ZeroAllocationDomainAttribute : Attribute { }
-
-    // === Uso / Aplicación ===
-
-    [AttributeUsage(AttributeTargets.Method)]
-    public sealed class UseCaseAttribute : Attribute { }
-
-    // === Infraestructura de memoria ===
-
-    [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.ReturnValue)]
-    public sealed class BufferOwnerAttribute : Attribute { }
-}
-]]>
-</file>
-<file path="NetShaper.Abstractions\PacketCaptureConstants.cs">
-<![CDATA[
-namespace NetShaper.Abstractions
-{
-    /// <summary>
-    /// Constantes compartidas para captura de paquetes y filtros WinDivert.
-    /// </summary>
-    public static class PacketCaptureConstants
-    {
+        public static RuleFunc Create() => Evaluate;
+        
         /// <summary>
-        /// Longitud máxima permitida para un filtro WinDivert.
+        /// Creates state for AckDelay rule.
         /// </summary>
-        public const int MaxFilterLength = 1024;
-    }
-}
-]]>
-</file>
-<file path="NetShaper.Abstractions\PacketLogEntry.cs">
-<![CDATA[
-using System.Runtime.InteropServices;
-
-namespace NetShaper.Abstractions
-{
-    [StructLayout(LayoutKind.Sequential)]
-    [NetShaper.Abstractions.Attributes.ValueObject]
-    public readonly struct PacketLogEntry
-    {
-        public readonly long Timestamp;
-        public readonly LogLevel Level;
-        public readonly LogCode Code;
-        public readonly long Value;
-
-        public PacketLogEntry(long timestamp, LogLevel level, LogCode code, long value)
+        /// <param name="delayMs">ACK delay in ms.</param>
+        public static RuleState CreateState(int delayMs)
         {
-            Timestamp = timestamp;
-            Level = level;
-            Code = code;
-            Value = value;
-        }
-
-        // DR.04: Dominio Técnico requiere TryValidateInvariant
-        public bool TryValidateInvariant(out string error)
-        {
-            error = string.Empty;
-            // Logging structs no tienen invariantes complejos - siempre válidos
-            return true;
-        }
-    }
-
-    public enum LogLevel : byte
-    {
-        Info = 0,
-        Warning = 1,
-        Error = 2
-    }
-
-    public enum LogCode : ushort
-    {
-        None = 0,
-        EngineStarted = 1,
-        EngineStopped = 2,
-        PacketProcessed = 3,
-        RecvFailed = 4,
-        SendFailed = 5,
-        InvalidPacket = 6,
-        OperationAborted = 7,
-        InvalidHandle = 8,
-        InvalidParameter = 9
-    }
-}
-]]>
-</file>
-<file path="NetShaper.Abstractions\RuleAttributes.cs">
-<![CDATA[
-// NetShaper.Abstractions/RuleAttributes.cs
-using System;
-
-namespace NetShaper.Abstractions
-{
-    /// <summary>
-    /// Marks methods that are allowed to use async/Task in Engine namespace.
-    /// These are typically initialization or configuration methods that run outside the hot path.
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Method)]
-    public sealed class EngineSetupAttribute : Attribute { }
-
-    /// <summary>
-    /// Marks methods or classes that are application boundaries.
-    /// These are allowed to catch generic Exception types.
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
-    public sealed class BoundaryAttribute : Attribute { }
-
-    /// <summary>
-    /// Marks a class as the composition root for dependency injection.
-    /// Each assembly should have at most one composition root.
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Class)]
-    public sealed class CompositionRootAttribute : Attribute { }
-
-    /// <summary>
-    /// Provides justification for rule violations that are acceptable.
-    /// Used to document why a constructor exceeds normal dependency limits, etc.
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Constructor)]
-    public sealed class JustificationAttribute : Attribute 
-    {
-        /// <summary>
-        /// Creates a justification attribute with the specified reason.
-        /// </summary>
-        /// <param name="reason">The reason this violation is acceptable.</param>
-        public JustificationAttribute(string reason)
-        {
-            if (reason == null)
-                throw new ArgumentNullException(nameof(reason));
-            Reason = reason;
+            var state = default(RuleState);
+            state.FixedDelayTicks = delayMs * Stopwatch.Frequency / 1000;
+            return state;
         }
         
-        public string Reason { get; }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static ActionMask Evaluate(
+            ReadOnlySpan<byte> packet,
+            ref PacketMetadata meta,
+            ref RuleState state,
+            ref ActionResult result)
+        {
+            // Minimum: IP header (20) + TCP header (20)
+            if (packet.Length < 40)
+                return ActionMask.None;
+            
+            // Check if TCP
+            byte protocol = packet[9];
+            if (protocol != 6)
+                return ActionMask.None;
+            
+            // Get IP header length
+            int ipHeaderLen = (packet[0] & 0x0F) * 4;
+            if (packet.Length < ipHeaderLen + 14)
+                return ActionMask.None;
+            
+            // Get TCP flags
+            byte tcpFlags = packet[ipHeaderLen + 13];
+            
+            // Check for ACK flag
+            if ((tcpFlags & AckFlag) == 0)
+                return ActionMask.None;
+            
+            // Delay ACK
+            if (state.FixedDelayTicks > result.DelayTicks)
+                result.DelayTicks = state.FixedDelayTicks;
+            
+            state.Counter++;
+            return ActionMask.Delay;
+        }
     }
 }
 ]]>
 </file>
-<file path="NetShaper.Abstractions\WrapperResult.cs">
+<file path="NetShaper.Rules\Rules\BandwidthRule.cs">
 <![CDATA[
-namespace NetShaper.Abstractions
+using System.Runtime.CompilerServices;
+using NetShaper.Abstractions;
+
+namespace NetShaper.Rules.Rules
 {
-    public enum WrapperResult
+    /// <summary>
+    /// Bandwidth rule: rate-limit by bytes per second (BPS).
+    /// Uses token bucket algorithm where tokens = bytes.
+    /// </summary>
+    public static class BandwidthRule
     {
-        Success = 0,
-        InvalidFilter = 1,
-        InvalidHandle = 2,
-        InvalidParameter = 3,
-        OperationAborted = 4,
-        ElementNotFound = 5,
-        BufferTooSmall = 6,
-        Unknown = 99
+        public static RuleFunc Create() => Evaluate;
+        
+        /// <summary>
+        /// Creates state for Bandwidth rule.
+        /// </summary>
+        /// <param name="bytesPerSecond">Max bytes per second.</param>
+        public static RuleState CreateState(int bytesPerSecond)
+        {
+            var state = default(RuleState);
+            state.MaxTokens = bytesPerSecond;
+            state.TokenBucket = bytesPerSecond;  // Start full
+            state.TokensPerTick = bytesPerSecond;
+            state.LastTick = System.Diagnostics.Stopwatch.GetTimestamp();
+            return state;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static ActionMask Evaluate(
+            ReadOnlySpan<byte> packet,
+            ref PacketMetadata meta,
+            ref RuleState state,
+            ref ActionResult result)
+        {
+            long now = System.Diagnostics.Stopwatch.GetTimestamp();
+            long elapsed = now - state.LastTick;
+            long frequency = System.Diagnostics.Stopwatch.Frequency;
+            
+            // Refill tokens based on elapsed time
+            int tokensToAdd = (int)(elapsed * state.TokensPerTick / frequency);
+            if (tokensToAdd > 0)
+            {
+                state.TokenBucket = Math.Min(state.TokenBucket + tokensToAdd, state.MaxTokens);
+                state.LastTick = now;
+            }
+            
+            int packetSize = packet.Length;
+            
+            // Check if we have enough tokens for this packet
+            if (state.TokenBucket >= packetSize)
+            {
+                state.TokenBucket -= packetSize;
+                state.Counter++;
+                return ActionMask.None;  // Pass
+            }
+            
+            // Not enough bandwidth, drop
+            return ActionMask.Drop;
+        }
+    }
+}
+]]>
+</file>
+<file path="NetShaper.Rules\Rules\BlackholeRule.cs">
+<![CDATA[
+using System.Runtime.CompilerServices;
+using NetShaper.Abstractions;
+
+namespace NetShaper.Rules.Rules
+{
+    /// <summary>
+    /// Blackhole rule: silent drop (no response/RST).
+    /// Short-circuits pipeline.
+    /// </summary>
+    public static class BlackholeRule
+    {
+        public static RuleFunc Create() => Evaluate;
+        
+        public static RuleState CreateState() => default;
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static ActionMask Evaluate(
+            ReadOnlySpan<byte> packet,
+            ref PacketMetadata meta,
+            ref RuleState state,
+            ref ActionResult result)
+        {
+            state.Counter++;
+            return ActionMask.Blackhole;
+        }
+    }
+}
+]]>
+</file>
+<file path="NetShaper.Rules\Rules\BurstRule.cs">
+<![CDATA[
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using NetShaper.Abstractions;
+
+namespace NetShaper.Rules.Rules
+{
+    /// <summary>
+    /// Burst rule: releases queued packets in bursts.
+    /// Holds packets for burstInterval, then releases all at once.
+    /// </summary>
+    public static class BurstRule
+    {
+        public static RuleFunc Create() => Evaluate;
+        
+        /// <summary>
+        /// Creates state for Burst rule.
+        /// </summary>
+        /// <param name="burstIntervalMs">Interval between bursts in ms.</param>
+        public static RuleState CreateState(int burstIntervalMs)
+        {
+            var state = default(RuleState);
+            long frequency = Stopwatch.Frequency;
+            state.FixedDelayTicks = burstIntervalMs * frequency / 1000;
+            state.LastTick = Stopwatch.GetTimestamp();
+            return state;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static ActionMask Evaluate(
+            ReadOnlySpan<byte> packet,
+            ref PacketMetadata meta,
+            ref RuleState state,
+            ref ActionResult result)
+        {
+            long now = Stopwatch.GetTimestamp();
+            long elapsed = now - state.LastTick;
+            
+            // If burst interval elapsed, reset timer and pass immediately
+            if (elapsed >= state.FixedDelayTicks)
+            {
+                state.LastTick = now;
+                state.Counter++;
+                return ActionMask.None;
+            }
+            
+            // Otherwise delay until next burst window
+            long remainingDelay = state.FixedDelayTicks - elapsed;
+            if (remainingDelay > result.DelayTicks)
+                result.DelayTicks = remainingDelay;
+            
+            return ActionMask.Delay;
+        }
+    }
+}
+]]>
+</file>
+<file path="NetShaper.Rules\Rules\DropRule.cs">
+<![CDATA[
+using System.Runtime.CompilerServices;
+using NetShaper.Abstractions;
+
+namespace NetShaper.Rules.Rules
+{
+    /// <summary>
+    /// Drop rule: drops all matching packets.
+    /// Short-circuits pipeline.
+    /// </summary>
+    public static class DropRule
+    {
+        /// <summary>
+        /// Creates a Drop rule function.
+        /// </summary>
+        /// <returns>Rule delegate.</returns>
+        public static RuleFunc Create() => Evaluate;
+        
+        /// <summary>
+        /// Initializes state for Drop rule.
+        /// </summary>
+        public static RuleState CreateState() => default;
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static ActionMask Evaluate(
+            ReadOnlySpan<byte> packet,
+            ref PacketMetadata meta,
+            ref RuleState state,
+            ref ActionResult result)
+        {
+            // Unconditional drop
+            state.Counter++;
+            return ActionMask.Drop;
+        }
+    }
+}
+]]>
+</file>
+<file path="NetShaper.Rules\Rules\DuplicateRule.cs">
+<![CDATA[
+using System.Runtime.CompilerServices;
+using NetShaper.Abstractions;
+
+namespace NetShaper.Rules.Rules
+{
+    /// <summary>
+    /// Duplicate rule: send packet N times.
+    /// Does NOT short-circuit.
+    /// </summary>
+    public static class DuplicateRule
+    {
+        public static RuleFunc Create() => Evaluate;
+        
+        /// <summary>
+        /// Creates state for Duplicate rule.
+        /// </summary>
+        /// <param name="count">Number of duplicates (0 = no extra copies).</param>
+        public static RuleState CreateState(int count)
+        {
+            var state = default(RuleState);
+            state.DuplicateCount = count;
+            return state;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static ActionMask Evaluate(
+            ReadOnlySpan<byte> packet,
+            ref PacketMetadata meta,
+            ref RuleState state,
+            ref ActionResult result)
+        {
+            if (state.DuplicateCount <= 0)
+                return ActionMask.None;
+            
+            // Accumulate max duplicate count
+            if (state.DuplicateCount > result.DuplicateCount)
+                result.DuplicateCount = state.DuplicateCount;
+            
+            state.Counter++;
+            return ActionMask.Duplicate;
+        }
+    }
+}
+]]>
+</file>
+<file path="NetShaper.Rules\Rules\JitterRule.cs">
+<![CDATA[
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using NetShaper.Abstractions;
+
+namespace NetShaper.Rules.Rules
+{
+    /// <summary>
+    /// Jitter rule: adds random delay variance (±ms).
+    /// Uses xorshift RNG for O(1) random.
+    /// </summary>
+    public static class JitterRule
+    {
+        public static RuleFunc Create() => Evaluate;
+        
+        /// <summary>
+        /// Creates state for Jitter rule.
+        /// </summary>
+        /// <param name="minDelayMs">Minimum delay in ms.</param>
+        /// <param name="maxDelayMs">Maximum delay in ms.</param>
+        /// <param name="seed">RNG seed (use unique per rule).</param>
+        public static RuleState CreateState(int minDelayMs, int maxDelayMs, uint seed = 12345)
+        {
+            var state = default(RuleState);
+            long frequency = Stopwatch.Frequency;
+            state.MinDelayTicks = (int)(minDelayMs * frequency / 1000);
+            state.MaxDelayTicks = (int)(maxDelayMs * frequency / 1000);
+            state.RngState = seed == 0 ? 12345 : seed;
+            return state;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static ActionMask Evaluate(
+            ReadOnlySpan<byte> packet,
+            ref PacketMetadata meta,
+            ref RuleState state,
+            ref ActionResult result)
+        {
+            // xorshift32
+            uint x = state.RngState;
+            x ^= x << 13;
+            x ^= x >> 17;
+            x ^= x << 5;
+            state.RngState = x;
+            
+            // Random delay in range [min, max]
+            int range = state.MaxDelayTicks - state.MinDelayTicks;
+            long delay = state.MinDelayTicks + (int)(x % (uint)(range + 1));
+            
+            if (delay > result.DelayTicks)
+                result.DelayTicks = delay;
+            
+            state.Counter++;
+            return ActionMask.Delay;
+        }
+    }
+}
+]]>
+</file>
+<file path="NetShaper.Rules\Rules\LagRule.cs">
+<![CDATA[
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using NetShaper.Abstractions;
+
+namespace NetShaper.Rules.Rules
+{
+    /// <summary>
+    /// Lag rule: adds fixed delay to packets.
+    /// Does NOT short-circuit.
+    /// </summary>
+    public static class LagRule
+    {
+        /// <summary>
+        /// Creates a Lag rule function.
+        /// </summary>
+        /// <returns>Rule delegate.</returns>
+        public static RuleFunc Create() => Evaluate;
+        
+        /// <summary>
+        /// Initializes state for Lag rule with specified delay.
+        /// </summary>
+        /// <param name="delayMs">Delay in milliseconds.</param>
+        public static RuleState CreateState(int delayMs)
+        {
+            var state = default(RuleState);
+            // Convert ms to ticks: ticks = ms * Frequency / 1000
+            state.FixedDelayTicks = (long)(delayMs * Stopwatch.Frequency / 1000.0);
+            return state;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static ActionMask Evaluate(
+            ReadOnlySpan<byte> packet,
+            ref PacketMetadata meta,
+            ref RuleState state,
+            ref ActionResult result)
+        {
+            state.Counter++;
+            
+            // Accumulate delay (max)
+            if (state.FixedDelayTicks > result.DelayTicks)
+                result.DelayTicks = state.FixedDelayTicks;
+            
+            return ActionMask.Delay;
+        }
+    }
+}
+]]>
+</file>
+<file path="NetShaper.Rules\Rules\LossPatternRule.cs">
+<![CDATA[
+using System.Runtime.CompilerServices;
+using NetShaper.Abstractions;
+
+namespace NetShaper.Rules.Rules
+{
+    /// <summary>
+    /// LossPattern rule: drops packets by bitmask pattern.
+    /// E.g., pattern 0b10 = drop every other packet.
+    /// </summary>
+    public static class LossPatternRule
+    {
+        public static RuleFunc Create() => Evaluate;
+        
+        /// <summary>
+        /// Creates state for LossPattern rule.
+        /// </summary>
+        /// <param name="pattern">Bitmask where 1 = drop. E.g., 0b1010 drops positions 1,3.</param>
+        /// <param name="length">Pattern length in bits (1-64).</param>
+        public static RuleState CreateState(ulong pattern, int length)
+        {
+            var state = default(RuleState);
+            state.PatternMask = pattern;
+            state.PatternLength = Math.Clamp(length, 1, 64);
+            state.PatternIndex = 0;
+            return state;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static ActionMask Evaluate(
+            ReadOnlySpan<byte> packet,
+            ref PacketMetadata meta,
+            ref RuleState state,
+            ref ActionResult result)
+        {
+            int index = state.PatternIndex;
+            bool shouldDrop = ((state.PatternMask >> index) & 1) == 1;
+            
+            // Advance pattern
+            state.PatternIndex = (index + 1) % state.PatternLength;
+            state.Counter++;
+            
+            return shouldDrop ? ActionMask.Drop : ActionMask.None;
+        }
+    }
+}
+]]>
+</file>
+<file path="NetShaper.Rules\Rules\MtuClampRule.cs">
+<![CDATA[
+using System.Runtime.CompilerServices;
+using NetShaper.Abstractions;
+
+namespace NetShaper.Rules.Rules
+{
+    /// <summary>
+    /// MtuClamp rule: enforces maximum packet size.
+    /// Sets Truncate modify flag.
+    /// </summary>
+    public static class MtuClampRule
+    {
+        public static RuleFunc Create() => Evaluate;
+        
+        /// <summary>
+        /// Creates state for MtuClamp rule.
+        /// </summary>
+        /// <param name="maxPacketSize">Maximum packet size in bytes.</param>
+        public static RuleState CreateState(int maxPacketSize)
+        {
+            var state = default(RuleState);
+            state.MaxTokens = maxPacketSize;  // Reusing MaxTokens field for MTU
+            return state;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static ActionMask Evaluate(
+            ReadOnlySpan<byte> packet,
+            ref PacketMetadata meta,
+            ref RuleState state,
+            ref ActionResult result)
+        {
+            if (packet.Length <= state.MaxTokens)
+                return ActionMask.None;  // No modification needed
+            
+            // Packet exceeds MTU, set truncate flag
+            result.ModifyFlags |= ModifyFlags.Truncate;
+            state.Counter++;
+            return ActionMask.Modify;
+        }
+    }
+}
+]]>
+</file>
+<file path="NetShaper.Rules\Rules\OutOfOrderRule.cs">
+<![CDATA[
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using NetShaper.Abstractions;
+
+namespace NetShaper.Rules.Rules
+{
+    /// <summary>
+    /// OutOfOrder rule: reorders packets by holding and releasing with delay.
+    /// Essentially delays packets randomly within a window.
+    /// </summary>
+    public static class OutOfOrderRule
+    {
+        public static RuleFunc Create() => Evaluate;
+        
+        /// <summary>
+        /// Creates state for OutOfOrder rule.
+        /// </summary>
+        /// <param name="maxDelayMs">Maximum reorder delay in ms.</param>
+        /// <param name="seed">RNG seed.</param>
+        public static RuleState CreateState(int maxDelayMs, uint seed = 54321)
+        {
+            var state = default(RuleState);
+            long frequency = Stopwatch.Frequency;
+            state.MaxDelayTicks = (int)(maxDelayMs * frequency / 1000);
+            state.MinDelayTicks = 0;
+            state.RngState = seed == 0 ? 54321 : seed;
+            return state;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static ActionMask Evaluate(
+            ReadOnlySpan<byte> packet,
+            ref PacketMetadata meta,
+            ref RuleState state,
+            ref ActionResult result)
+        {
+            // xorshift32
+            uint x = state.RngState;
+            x ^= x << 13;
+            x ^= x >> 17;
+            x ^= x << 5;
+            state.RngState = x;
+            
+            // Random delay from 0 to max
+            long delay = (int)(x % (uint)(state.MaxDelayTicks + 1));
+            
+            if (delay > result.DelayTicks)
+                result.DelayTicks = delay;
+            
+            state.Counter++;
+            return delay > 0 ? ActionMask.Delay : ActionMask.None;
+        }
+    }
+}
+]]>
+</file>
+<file path="NetShaper.Rules\Rules\SynDropRule.cs">
+<![CDATA[
+using System.Runtime.CompilerServices;
+using NetShaper.Abstractions;
+
+namespace NetShaper.Rules.Rules
+{
+    /// <summary>
+    /// SynDrop rule: drops TCP SYN packets (blocks new connections).
+    /// Short-circuits pipeline.
+    /// </summary>
+    public static class SynDropRule
+    {
+        private const int IPv4HeaderOffset = 0;
+        private const int TcpFlagsOffset = 13;  // Relative to TCP header
+        private const byte SynFlag = 0x02;
+        private const byte AckFlag = 0x10;
+        
+        public static RuleFunc Create() => Evaluate;
+        
+        public static RuleState CreateState() => default;
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static ActionMask Evaluate(
+            ReadOnlySpan<byte> packet,
+            ref PacketMetadata meta,
+            ref RuleState state,
+            ref ActionResult result)
+        {
+            // Minimum: IP header (20) + TCP header (20) + flags
+            if (packet.Length < 40)
+                return ActionMask.None;
+            
+            // Check if TCP (protocol = 6 at offset 9 for IPv4)
+            byte protocol = packet[9];
+            if (protocol != 6)
+                return ActionMask.None;
+            
+            // Get IP header length
+            int ipHeaderLen = (packet[0] & 0x0F) * 4;
+            if (packet.Length < ipHeaderLen + 20)
+                return ActionMask.None;
+            
+            // Get TCP flags
+            byte tcpFlags = packet[ipHeaderLen + TcpFlagsOffset];
+            
+            // Check for SYN without ACK (new connection)
+            bool isSyn = (tcpFlags & SynFlag) != 0;
+            bool isAck = (tcpFlags & AckFlag) != 0;
+            
+            if (isSyn && !isAck)
+            {
+                state.Counter++;
+                return ActionMask.Drop;
+            }
+            
+            return ActionMask.None;
+        }
+    }
+}
+]]>
+</file>
+<file path="NetShaper.Rules\Rules\TamperRule.cs">
+<![CDATA[
+using System.Runtime.CompilerServices;
+using NetShaper.Abstractions;
+
+namespace NetShaper.Rules.Rules
+{
+    /// <summary>
+    /// Tamper rule: corrupts/truncates/rewrites packet payload.
+    /// Sets appropriate ModifyFlags.
+    /// </summary>
+    public static class TamperRule
+    {
+        public static RuleFunc Create() => Evaluate;
+        
+        /// <summary>
+        /// Creates state for Tamper rule.
+        /// </summary>
+        /// <param name="flags">Which tampering operations to apply.</param>
+        public static RuleState CreateState(ModifyFlags flags)
+        {
+            var state = default(RuleState);
+            // Store flags in pattern index (reusing field)
+            state.PatternIndex = (int)flags;
+            return state;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static ActionMask Evaluate(
+            ReadOnlySpan<byte> packet,
+            ref PacketMetadata meta,
+            ref RuleState state,
+            ref ActionResult result)
+        {
+            ModifyFlags flags = (ModifyFlags)state.PatternIndex;
+            
+            if (flags == ModifyFlags.None)
+                return ActionMask.None;
+            
+            result.ModifyFlags |= flags;
+            state.Counter++;
+            return ActionMask.Modify;
+        }
+    }
+}
+]]>
+</file>
+<file path="NetShaper.Rules\Rules\TcpRstRule.cs">
+<![CDATA[
+using System.Runtime.CompilerServices;
+using NetShaper.Abstractions;
+
+namespace NetShaper.Rules.Rules
+{
+    /// <summary>
+    /// TcpRst rule: injects TCP RST packets.
+    /// Sets Inject flag and prepares RST packet ID.
+    /// </summary>
+    public static class TcpRstRule
+    {
+        public static RuleFunc Create() => Evaluate;
+        
+        /// <summary>
+        /// Creates state for TcpRst rule.
+        /// </summary>
+        /// <param name="oneShot">If true, only inject once then disable.</param>
+        public static RuleState CreateState(bool oneShot)
+        {
+            var state = default(RuleState);
+            state.PatternIndex = oneShot ? 1 : 0;  // 1 = one-shot mode
+            return state;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static ActionMask Evaluate(
+            ReadOnlySpan<byte> packet,
+            ref PacketMetadata meta,
+            ref RuleState state,
+            ref ActionResult result)
+        {
+            // Check if already fired (one-shot mode)
+            if (state.PatternIndex == 2)  // 2 = already fired
+                return ActionMask.None;
+            
+            // Minimum: IP header (20) + TCP header (20)
+            if (packet.Length < 40)
+                return ActionMask.None;
+            
+            // Check if TCP
+            byte protocol = packet[9];
+            if (protocol != 6)
+                return ActionMask.None;
+            
+            // Note: Actual RST packet construction happens in InjectQueue
+            // Here we just signal that injection is needed
+            // The inject packet ID would be set by a packet builder (TODO)
+            result.InjectPacketId = 0;  // Placeholder, actual RST building is external
+            
+            state.Counter++;
+            
+            // If one-shot, mark as fired
+            if (state.PatternIndex == 1)
+                state.PatternIndex = 2;
+            
+            return ActionMask.Inject;
+        }
+    }
+}
+]]>
+</file>
+<file path="NetShaper.Rules\Rules\ThrottleRule.cs">
+<![CDATA[
+using System.Runtime.CompilerServices;
+using NetShaper.Abstractions;
+
+namespace NetShaper.Rules.Rules
+{
+    /// <summary>
+    /// Throttle rule: rate-limit by packets per second (PPS).
+    /// Uses token bucket algorithm.
+    /// </summary>
+    public static class ThrottleRule
+    {
+        public static RuleFunc Create() => Evaluate;
+        
+        /// <summary>
+        /// Creates state for Throttle rule.
+        /// </summary>
+        /// <param name="packetsPerSecond">Max packets per second.</param>
+        public static RuleState CreateState(int packetsPerSecond)
+        {
+            var state = default(RuleState);
+            state.MaxTokens = packetsPerSecond;
+            state.TokenBucket = packetsPerSecond;  // Start full
+            state.TokensPerTick = packetsPerSecond;
+            state.LastTick = System.Diagnostics.Stopwatch.GetTimestamp();
+            return state;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static ActionMask Evaluate(
+            ReadOnlySpan<byte> packet,
+            ref PacketMetadata meta,
+            ref RuleState state,
+            ref ActionResult result)
+        {
+            long now = System.Diagnostics.Stopwatch.GetTimestamp();
+            long elapsed = now - state.LastTick;
+            long frequency = System.Diagnostics.Stopwatch.Frequency;
+            
+            // Refill tokens based on elapsed time
+            int tokensToAdd = (int)(elapsed * state.TokensPerTick / frequency);
+            if (tokensToAdd > 0)
+            {
+                state.TokenBucket = Math.Min(state.TokenBucket + tokensToAdd, state.MaxTokens);
+                state.LastTick = now;
+            }
+            
+            // Check if we have tokens
+            if (state.TokenBucket > 0)
+            {
+                state.TokenBucket--;
+                state.Counter++;
+                return ActionMask.None;  // Pass
+            }
+            
+            // No tokens, drop
+            return ActionMask.Drop;
+        }
+    }
+}
+]]>
+</file>
+<file path="NetShaper.Rules\Rules\WindowClampRule.cs">
+<![CDATA[
+using System.Runtime.CompilerServices;
+using NetShaper.Abstractions;
+
+namespace NetShaper.Rules.Rules
+{
+    /// <summary>
+    /// WindowClamp rule: limits TCP window size.
+    /// Sets WindowClamp modify flag.
+    /// </summary>
+    public static class WindowClampRule
+    {
+        public static RuleFunc Create() => Evaluate;
+        
+        /// <summary>
+        /// Creates state for WindowClamp rule.
+        /// </summary>
+        /// <param name="maxWindowSize">Maximum window size in bytes.</param>
+        public static RuleState CreateState(ushort maxWindowSize)
+        {
+            var state = default(RuleState);
+            state.TokenBucket = maxWindowSize;  // Reusing for window size
+            return state;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static ActionMask Evaluate(
+            ReadOnlySpan<byte> packet,
+            ref PacketMetadata meta,
+            ref RuleState state,
+            ref ActionResult result)
+        {
+            // Minimum: IP header (20) + TCP header (20)
+            if (packet.Length < 40)
+                return ActionMask.None;
+            
+            // Check if TCP
+            byte protocol = packet[9];
+            if (protocol != 6)
+                return ActionMask.None;
+            
+            // Get IP header length
+            int ipHeaderLen = (packet[0] & 0x0F) * 4;
+            if (packet.Length < ipHeaderLen + 16)
+                return ActionMask.None;
+            
+            // TCP window is at offset 14-15 from TCP header
+            int windowOffset = ipHeaderLen + 14;
+            ushort currentWindow = (ushort)((packet[windowOffset] << 8) | packet[windowOffset + 1]);
+            
+            if (currentWindow <= (ushort)state.TokenBucket)
+                return ActionMask.None;  // No modification needed
+            
+            // Window exceeds max, set clamp flag
+            result.ModifyFlags |= ModifyFlags.WindowClamp;
+            state.Counter++;
+            return ActionMask.Modify;
+        }
     }
 }
 ]]>

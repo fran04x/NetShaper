@@ -3,51 +3,61 @@ using Microsoft.Extensions.DependencyInjection;
 using NetShaper.Abstractions;
 using NetShaper.Infrastructure;
 using NetShaper.Native;
+using NetShaper.Rules;
 
 namespace NetShaper.Composition
 {
     /// <summary>
     /// Composition root for NetShaper dependency injection.
     /// This is the ONLY place where concrete implementations are wired to abstractions.
+    /// Responsible for: RulePipeline lifecycle, Ruleset swap, IPacketCapture decoration.
     /// </summary>
     [CompositionRoot]
     public static class ServiceCollectionExtensions
     {
         /// <summary>
-        /// Registers all NetShaper core services including packet capture, logging, and engine.
-        /// This method wires all concrete implementations to their abstractions.
+        /// Registers all NetShaper core services including packet capture, logging, rules, and engine.
+        /// Wiring hierarchy: WinDivertAdapter → RulePacketCapture → Engine
         /// </summary>
-        /// <param name="services">The service collection to add services to.</param>
-        /// <returns>The service collection for chaining.</returns>
         public static IServiceCollection AddNetShaperServices(this IServiceCollection services)
         {
             if (services == null)
                 throw new ArgumentNullException(nameof(services));
             
-            // Register packet logger as singleton (maintains state across application lifetime)
+            // Logger: singleton (maintains state across application lifetime)
             services.AddSingleton<IPacketLogger, RingBufferPacketLogger>();
             
-            // Register packet capture as transient (new instance per engine)
-            services.AddTransient<IPacketCapture, WinDivertAdapter>();
+            // RulePipeline: singleton (atomic Ruleset swap)
+            services.AddSingleton<RulePipeline>();
             
-            // Register Engine as IEngine
-            // Factory pattern: creates fresh IPacketCapture instance per thread
+            // Engine with decorated IPacketCapture
             services.AddTransient<IEngine>(serviceProvider =>
             {
                 var logger = serviceProvider.GetRequiredService<IPacketLogger>();
+                var pipeline = serviceProvider.GetRequiredService<RulePipeline>();
                 
-                // Factory to create IPacketCapture instances (one per thread in pool)
-                Func<IPacketCapture> captureFactory = () => 
-                    serviceProvider.GetRequiredService<IPacketCapture>();
+                // Factory: creates decorated IPacketCapture per thread
+                // WinDivertAdapter → RulePacketCapture
+                Func<IPacketCapture> captureFactory = () =>
+                {
+                    var winDivert = new WinDivertAdapter();
+                    return new RulePacketCapture(winDivert, pipeline);
+                };
                 
-                // Default: 1 thread
-                // Future: make configurable via settings
                 const int threadCount = 1;
-                
                 return new Engine.Engine(logger, captureFactory, threadCount);
             });
             
             return services;
+        }
+        
+        /// <summary>
+        /// Gets the RulePipeline for ruleset configuration.
+        /// Use pipeline.Swap(ruleset) to activate/deactivate rules.
+        /// </summary>
+        public static RulePipeline GetRulePipeline(this IServiceProvider provider)
+        {
+            return provider.GetRequiredService<RulePipeline>();
         }
     }
 }

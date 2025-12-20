@@ -1,0 +1,454 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ══════════════════════════════════════════════════════════════════════════
+         NETSHAPER BASE STYLES
+         
+         Contains Styles only. Colors and Brushes come from Colors.Light.xaml
+         (default) and can be overridden by Colors.Dark.xaml at runtime.
+         ══════════════════════════════════════════════════════════════════════════ -->
+
+    <!-- Import default (light) colors and brushes -->
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="Colors.Light.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+
+    <!--  
+    ┌─────────────────────────────────────────────────────────────────────────────┐
+    │  TYPOGRAPHY                                                                  │
+    │  Consistent font sizing with semantic names                                  │
+    └─────────────────────────────────────────────────────────────────────────────┘
+    -->
+    <FontFamily x:Key="FontFamily">Segoe UI, Arial</FontFamily>
+    <sys:Double x:Key="FontSizeXS" xmlns:sys="clr-namespace:System;assembly=mscorlib">11</sys:Double>
+    <sys:Double x:Key="FontSizeS" xmlns:sys="clr-namespace:System;assembly=mscorlib">12</sys:Double>
+    <sys:Double x:Key="FontSizeM" xmlns:sys="clr-namespace:System;assembly=mscorlib">14</sys:Double>
+    <sys:Double x:Key="FontSizeL" xmlns:sys="clr-namespace:System;assembly=mscorlib">16</sys:Double>
+    <sys:Double x:Key="FontSizeXL" xmlns:sys="clr-namespace:System;assembly=mscorlib">20</sys:Double>
+    <sys:Double x:Key="FontSizeXXL" xmlns:sys="clr-namespace:System;assembly=mscorlib">24</sys:Double>
+
+    <!-- 
+    ┌─────────────────────────────────────────────────────────────────────────────┐
+    │  SPACING TOKENS                                                              │
+    │  Consistent spacing throughout the UI                                        │
+    └─────────────────────────────────────────────────────────────────────────────┘
+    -->
+    <Thickness x:Key="SpacingXS">4</Thickness>
+    <Thickness x:Key="SpacingS">8</Thickness>
+    <Thickness x:Key="SpacingM">12</Thickness>
+    <Thickness x:Key="SpacingL">16</Thickness>
+    <Thickness x:Key="SpacingXL">24</Thickness>
+    <Thickness x:Key="SpacingXXL">32</Thickness>
+    
+    <CornerRadius x:Key="RadiusS">4</CornerRadius>
+    <CornerRadius x:Key="RadiusM">8</CornerRadius>
+    <CornerRadius x:Key="RadiusL">12</CornerRadius>
+
+    <!-- 
+    ┌─────────────────────────────────────────────────────────────────────────────┐
+    │  CARD STYLE                                                                  │
+    │  Modern floating card with subtle shadow and rounded corners                 │
+    └─────────────────────────────────────────────────────────────────────────────┘
+    -->
+    <Style x:Key="CardStyle" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource BackgroundLevel1Brush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderSubtleBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusM}"/>
+        <Setter Property="Padding" Value="16"/>
+        <!-- Soft shadow effect for depth -->
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect BlurRadius="8" 
+                                  ShadowDepth="2" 
+                                  Direction="270" 
+                                  Color="#000000" 
+                                  Opacity="0.08"/>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 
+    ┌─────────────────────────────────────────────────────────────────────────────┐
+    │  TOGGLE SWITCH STYLE                                                         │
+    │  Modern iOS/Android style toggle (large, thumb-based)                        │
+    └─────────────────────────────────────────────────────────────────────────────┘
+    -->
+    <Style x:Key="ToggleSwitchStyle" TargetType="ToggleButton">
+        <Setter Property="Width" Value="48"/>
+        <Setter Property="Height" Value="26"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Grid>
+                        <!-- Track (background pill) -->
+                        <Border x:Name="Track"
+                                Background="{DynamicResource BackgroundLevel2Brush}"
+                                BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="13"
+                                Height="26"
+                                Width="48"/>
+                        
+                        <!-- Thumb (sliding circle) -->
+                        <Border x:Name="Thumb"
+                                Background="{DynamicResource BackgroundLevel1Brush}"
+                                BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                Width="20"
+                                Height="20"
+                                HorizontalAlignment="Left"
+                                Margin="3,0,0,0">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="4" 
+                                                  ShadowDepth="1" 
+                                                  Direction="270" 
+                                                  Opacity="0.15"/>
+                            </Border.Effect>
+                        </Border>
+                    </Grid>
+                    
+                    <ControlTemplate.Triggers>
+                        <!-- Checked state: slide thumb right, green track -->
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Track" Property="Background" Value="{DynamicResource SuccessBrush}"/>
+                            <Setter TargetName="Track" Property="BorderBrush" Value="{DynamicResource SuccessBrush}"/>
+                            <Setter TargetName="Thumb" Property="HorizontalAlignment" Value="Right"/>
+                            <Setter TargetName="Thumb" Property="Margin" Value="0,0,3,0"/>
+                        </Trigger>
+                        
+                        <!-- Hover state -->
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Thumb" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 
+    ┌─────────────────────────────────────────────────────────────────────────────┐
+    │  SEGMENTED BUTTON STYLE                                                      │
+    │  Radio-button group styled as segmented control (Inbound/Outbound/Both)     │
+    └─────────────────────────────────────────────────────────────────────────────┘
+    -->
+    <Style x:Key="SegmentedButtonStyle" TargetType="RadioButton">
+        <Setter Property="Padding" Value="12,6"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeS}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundSecondaryBrush}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <Border x:Name="Bd"
+                            Background="Transparent"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="1"
+                            Padding="{TemplateBinding Padding}"
+                            SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="Center" 
+                                          VerticalAlignment="Center"/>
+                    </Border>
+                    
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AccentBrush}"/>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                            <Setter Property="Foreground" Value="White"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource BackgroundLevel2Brush}"/>
+                        </Trigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsMouseOver" Value="True"/>
+                                <Condition Property="IsChecked" Value="True"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
+                        </MultiTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 
+    ┌─────────────────────────────────────────────────────────────────────────────┐
+    │  DIRECTION TOGGLE STYLE                                                      │
+    │  Non-exclusive toggle buttons for In/Out direction selection                 │
+    │  Both can be on, both can be off, or any combination                         │
+    └─────────────────────────────────────────────────────────────────────────────┘
+    -->
+    <Style x:Key="DirectionToggleStyle" TargetType="ToggleButton">
+        <Setter Property="Padding" Value="12,6"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeS}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundSecondaryBrush}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border x:Name="Bd"
+                            Background="Transparent"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="1"
+                            Padding="{TemplateBinding Padding}"
+                            SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="Center" 
+                                          VerticalAlignment="Center"/>
+                    </Border>
+                    
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AccentBrush}"/>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                            <Setter Property="Foreground" Value="White"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource BackgroundLevel2Brush}"/>
+                        </Trigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsMouseOver" Value="True"/>
+                                <Condition Property="IsChecked" Value="True"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
+                        </MultiTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 
+    ┌─────────────────────────────────────────────────────────────────────────────┐
+    │  PRIMARY BUTTON STYLE                                                        │
+    │  Prominent action button                                                     │
+    └─────────────────────────────────────────────────────────────────────────────┘
+    -->
+    <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeM}"/>
+        <Setter Property="Padding" Value="24,10"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="{StaticResource RadiusS}"
+                            Padding="{TemplateBinding Padding}"
+                            SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="Center" 
+                                          VerticalAlignment="Center"/>
+                    </Border>
+                    
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AccentActiveBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+    <!-- 
+    ┌─────────────────────────────────────────────────────────────────────────────┐
+    │  START/STOP TOGGLE BUTTON STYLE                                              │
+    │  Blue (accent) when stopped, Red (danger) when running                       │
+    └─────────────────────────────────────────────────────────────────────────────┘
+    -->
+    <Style x:Key="StartStopToggleStyle" TargetType="ToggleButton">
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeM}"/>
+        <Setter Property="Padding" Value="24,10"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="MinWidth" Value="120"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border x:Name="Bd"
+                            Background="{DynamicResource AccentBrush}"
+                            CornerRadius="{StaticResource RadiusS}"
+                            Padding="{TemplateBinding Padding}"
+                            SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="Center" 
+                                          VerticalAlignment="Center"/>
+                    </Border>
+                    
+                    <ControlTemplate.Triggers>
+                        <!-- When running (IsChecked=True): Red background -->
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource DangerBrush}"/>
+                        </Trigger>
+                        <!-- Hover states -->
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsMouseOver" Value="True"/>
+                                <Condition Property="IsChecked" Value="False"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
+                        </MultiTrigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsMouseOver" Value="True"/>
+                                <Condition Property="IsChecked" Value="True"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource DangerHoverBrush}"/>
+                        </MultiTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+    <!-- Danger variant for buttons -->
+    <Style x:Key="DangerButtonStyle" TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">
+        <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
+    </Style>
+
+    <!-- 
+    ┌─────────────────────────────────────────────────────────────────────────────┐
+    │  THEME TOGGLE BUTTON STYLE                                                   │
+    │  Circular icon button for day/night theme toggle                             │
+    └─────────────────────────────────────────────────────────────────────────────┘
+    -->
+    <Style x:Key="ThemeToggleStyle" TargetType="Button">
+        <Setter Property="Width" Value="36"/>
+        <Setter Property="Height" Value="36"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FontSize" Value="18"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd"
+                            Background="{DynamicResource BackgroundLevel2Brush}"
+                            CornerRadius="18"
+                            SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="Center" 
+                                          VerticalAlignment="Center"/>
+                    </Border>
+                    
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource BorderBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 
+    ┌─────────────────────────────────────────────────────────────────────────────┐
+    │  TEXT INPUT STYLE                                                            │
+    │  Clean, minimal text input for filter/search                                 │
+    └─────────────────────────────────────────────────────────────────────────────┘
+    -->
+    <Style x:Key="SearchBoxStyle" TargetType="TextBox">
+        <Setter Property="Background" Value="{DynamicResource BackgroundLevel1Brush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="12,8"/>
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeM}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{StaticResource RadiusS}"
+                            SnapsToDevicePixels="True">
+                        <ScrollViewer x:Name="PART_ContentHost" 
+                                      Margin="{TemplateBinding Padding}"/>
+                    </Border>
+                    
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsFocused" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 
+    ┌─────────────────────────────────────────────────────────────────────────────┐
+    │  COMBO BOX STYLE                                                             │
+    │  Minimal combo for presets selection                                         │
+    └─────────────────────────────────────────────────────────────────────────────┘
+    -->
+    <Style x:Key="PresetComboBoxStyle" TargetType="ComboBox">
+        <Setter Property="Background" Value="{DynamicResource BackgroundLevel1Brush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="12,8"/>
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeM}"/>
+        <Setter Property="MinWidth" Value="140"/>
+    </Style>
+
+    <!-- 
+    ┌─────────────────────────────────────────────────────────────────────────────┐
+    │  PARAMETER INPUT STYLE                                                       │
+    │  Compact numeric input for rule parameters                                   │
+    └─────────────────────────────────────────────────────────────────────────────┘
+    -->
+    <Style x:Key="ParamInputStyle" TargetType="TextBox">
+        <Setter Property="Background" Value="{DynamicResource BackgroundLevel2Brush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderSubtleBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="8,4"/>
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeS}"/>
+        <Setter Property="Width" Value="60"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{StaticResource RadiusS}">
+                        <ScrollViewer x:Name="PART_ContentHost" 
+                                      Margin="{TemplateBinding Padding}"
+                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+                    </Border>
+                    
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsFocused" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 
+    ┌─────────────────────────────────────────────────────────────────────────────┐
+    │  RULE CATEGORY BADGE                                                         │
+    │  Small colored badge indicating rule category (Drop/Delay/Modify/Inject)    │
+    └─────────────────────────────────────────────────────────────────────────────┘
+    -->
+    <Style x:Key="CategoryBadgeStyle" TargetType="Border">
+        <Setter Property="Padding" Value="6,2"/>
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusS}"/>
+        <Setter Property="HorizontalAlignment" Value="Left"/>
+    </Style>
+
+</ResourceDictionary>
