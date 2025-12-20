@@ -32,6 +32,88 @@ namespace NetShaper.App.Models
             set => SetField(ref _direction, value);
         }
 
+        // Visual-only flags for bounce-back animation effect
+        private bool _inboundVisuallyOff;
+        private bool _outboundVisuallyOff;
+
+        /// <summary>
+        /// Gets or sets whether inbound traffic is affected.
+        /// Maps to Direction enum for UI toggle binding.
+        /// Uses visual bounce-back when user tries to disable the last active direction.
+        /// </summary>
+        public bool IsInbound
+        {
+            get => !_inboundVisuallyOff && (_direction == Direction.Inbound || _direction == Direction.Both);
+            set
+            {
+                var outbound = _direction == Direction.Outbound || _direction == Direction.Both;
+                if (value && outbound)
+                    Direction = Direction.Both;
+                else if (value)
+                    Direction = Direction.Inbound;
+                else if (outbound)
+                    Direction = Direction.Outbound;
+                else
+                {
+                    // Visual bounce-back: show OFF briefly, then bounce back to ON
+                    _inboundVisuallyOff = true;
+                    OnPropertyChanged(nameof(IsInbound));
+                    
+                    System.Windows.Application.Current?.Dispatcher.BeginInvoke(
+                        System.Windows.Threading.DispatcherPriority.Background,
+                        async () =>
+                        {
+                            await System.Threading.Tasks.Task.Delay(100);
+                            _inboundVisuallyOff = false;
+                            OnPropertyChanged(nameof(IsInbound));
+                        });
+                    return;
+                }
+
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsOutbound));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether outbound traffic is affected.
+        /// Maps to Direction enum for UI toggle binding.
+        /// Uses visual bounce-back when user tries to disable the last active direction.
+        /// </summary>
+        public bool IsOutbound
+        {
+            get => !_outboundVisuallyOff && (_direction == Direction.Outbound || _direction == Direction.Both);
+            set
+            {
+                var inbound = _direction == Direction.Inbound || _direction == Direction.Both;
+                if (value && inbound)
+                    Direction = Direction.Both;
+                else if (value)
+                    Direction = Direction.Outbound;
+                else if (inbound)
+                    Direction = Direction.Inbound;
+                else
+                {
+                    // Visual bounce-back: show OFF briefly, then bounce back to ON
+                    _outboundVisuallyOff = true;
+                    OnPropertyChanged(nameof(IsOutbound));
+                    
+                    System.Windows.Application.Current?.Dispatcher.BeginInvoke(
+                        System.Windows.Threading.DispatcherPriority.Background,
+                        async () =>
+                        {
+                            await System.Threading.Tasks.Task.Delay(100);
+                            _outboundVisuallyOff = false;
+                            OnPropertyChanged(nameof(IsOutbound));
+                        });
+                    return;
+                }
+
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsInbound));
+            }
+        }
+
         /// <summary>
         /// BPF-like filter expression.
         /// NOTE: Currently a UI placeholder - does not filter traffic.

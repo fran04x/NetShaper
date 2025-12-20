@@ -80,6 +80,7 @@
                 <Button Grid.Column="2"
                         Style="{StaticResource ThemeToggleStyle}"
                         Content="{Binding ThemeIcon}"
+                        Foreground="{Binding ThemeIconBrush}"
                         Command="{Binding ToggleThemeCommand}"
                         FontFamily="Segoe MDL2 Assets"
                         VerticalAlignment="Center"
@@ -158,8 +159,10 @@
                                 BorderBrush="{DynamicResource BorderBrush}" 
                                 BorderThickness="1" HorizontalAlignment="Left">
                             <StackPanel Orientation="Horizontal">
-                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"/>
-                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"/>
+                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"
+                                              IsChecked="{Binding RulesConfig.Drop.IsInbound, Mode=TwoWay}"/>
+                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"
+                                              IsChecked="{Binding RulesConfig.Drop.IsOutbound, Mode=TwoWay}"/>
                             </StackPanel>
                         </Border>
                     </Grid>
@@ -198,8 +201,10 @@
                                 BorderBrush="{DynamicResource BorderBrush}" 
                                 BorderThickness="1" HorizontalAlignment="Left">
                             <StackPanel Orientation="Horizontal">
-                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"/>
-                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"/>
+                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"
+                                              IsChecked="{Binding RulesConfig.Blackhole.IsInbound, Mode=TwoWay}"/>
+                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"
+                                              IsChecked="{Binding RulesConfig.Blackhole.IsOutbound, Mode=TwoWay}"/>
                             </StackPanel>
                         </Border>
                     </Grid>
@@ -238,8 +243,10 @@
                                 BorderBrush="{DynamicResource BorderBrush}" 
                                 BorderThickness="1" HorizontalAlignment="Left">
                             <StackPanel Orientation="Horizontal">
-                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"/>
-                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"/>
+                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"
+                                              IsChecked="{Binding RulesConfig.SynDrop.IsInbound, Mode=TwoWay}"/>
+                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"
+                                              IsChecked="{Binding RulesConfig.SynDrop.IsOutbound, Mode=TwoWay}"/>
                             </StackPanel>
                         </Border>
                     </Grid>
@@ -284,8 +291,10 @@
                                 BorderBrush="{DynamicResource BorderBrush}" 
                                 BorderThickness="1" HorizontalAlignment="Left">
                             <StackPanel Orientation="Horizontal">
-                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"/>
-                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"/>
+                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"
+                                              IsChecked="{Binding RulesConfig.Lag.IsInbound, Mode=TwoWay}"/>
+                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"
+                                              IsChecked="{Binding RulesConfig.Lag.IsOutbound, Mode=TwoWay}"/>
                             </StackPanel>
                         </Border>
                         
@@ -333,8 +342,10 @@
                                 BorderBrush="{DynamicResource BorderBrush}" 
                                 BorderThickness="1" HorizontalAlignment="Left">
                             <StackPanel Orientation="Horizontal">
-                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"/>
-                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"/>
+                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"
+                                              IsChecked="{Binding RulesConfig.Jitter.IsInbound, Mode=TwoWay}"/>
+                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"
+                                              IsChecked="{Binding RulesConfig.Jitter.IsOutbound, Mode=TwoWay}"/>
                             </StackPanel>
                         </Border>
                         
@@ -386,8 +397,10 @@
                                 BorderBrush="{DynamicResource BorderBrush}" 
                                 BorderThickness="1" HorizontalAlignment="Left">
                             <StackPanel Orientation="Horizontal">
-                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"/>
-                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"/>
+                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"
+                                              IsChecked="{Binding RulesConfig.OutOfOrder.IsInbound, Mode=TwoWay}"/>
+                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"
+                                              IsChecked="{Binding RulesConfig.OutOfOrder.IsOutbound, Mode=TwoWay}"/>
                             </StackPanel>
                         </Border>
                         
@@ -437,8 +450,10 @@
                                 BorderBrush="{DynamicResource BorderBrush}" 
                                 BorderThickness="1" HorizontalAlignment="Left">
                             <StackPanel Orientation="Horizontal">
-                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"/>
-                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"/>
+                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"
+                                              IsChecked="{Binding RulesConfig.Burst.IsInbound, Mode=TwoWay}"/>
+                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"
+                                              IsChecked="{Binding RulesConfig.Burst.IsOutbound, Mode=TwoWay}"/>
                             </StackPanel>
                         </Border>
                         
@@ -447,6 +462,57 @@
                                        FontSize="{DynamicResource FontSizeS}" VerticalAlignment="Center" Margin="0,0,6,0"/>
                             <TextBox Style="{StaticResource ParamInputStyle}"
                                      Text="{Binding RulesConfig.Burst.IntervalMs, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="ms" Foreground="{DynamicResource ForegroundSecondaryBrush}"
+                                       FontSize="{DynamicResource FontSizeS}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- CARD: ACK Delay - BOUND -->
+                <Border Style="{StaticResource CardStyle}" Width="210" Margin="8">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="16"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="12"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        
+                        <Grid Grid.Row="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="ACK Delay"
+                                       Foreground="{DynamicResource ForegroundPrimaryBrush}"
+                                       FontSize="{DynamicResource FontSizeL}"
+                                       FontWeight="Medium" VerticalAlignment="Center"/>
+                            <ToggleButton Grid.Column="1"
+                                          Style="{StaticResource ToggleSwitchStyle}"
+                                          IsChecked="{Binding RulesConfig.AckDelay.Enabled, Mode=TwoWay}"/>
+                        </Grid>
+                        
+                        <Border Grid.Row="1" Style="{StaticResource CategoryBadgeStyle}"
+                                Background="{DynamicResource DelayBadgeBackgroundBrush}" Margin="0,6,0,0">
+                            <TextBlock Text="DELAY" Foreground="{DynamicResource DelayBadgeForegroundBrush}" FontSize="10" FontWeight="SemiBold"/>
+                        </Border>
+                        
+                        <Border Grid.Row="3" CornerRadius="4" 
+                                BorderBrush="{DynamicResource BorderBrush}" 
+                                BorderThickness="1" HorizontalAlignment="Left">
+                            <StackPanel Orientation="Horizontal">
+                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"
+                                              IsChecked="{Binding RulesConfig.AckDelay.IsInbound, Mode=TwoWay}"/>
+                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"
+                                              IsChecked="{Binding RulesConfig.AckDelay.IsOutbound, Mode=TwoWay}"/>
+                            </StackPanel>
+                        </Border>
+                        
+                        <StackPanel Grid.Row="5" Orientation="Horizontal">
+                            <TextBox Style="{StaticResource ParamInputStyle}" 
+                                     Text="{Binding RulesConfig.AckDelay.DelayMs, UpdateSourceTrigger=PropertyChanged}"/>
                             <TextBlock Text="ms" Foreground="{DynamicResource ForegroundSecondaryBrush}"
                                        FontSize="{DynamicResource FontSizeS}" VerticalAlignment="Center" Margin="6,0,0,0"/>
                         </StackPanel>
@@ -492,8 +558,10 @@
                                 BorderBrush="{DynamicResource BorderBrush}" 
                                 BorderThickness="1" HorizontalAlignment="Left">
                             <StackPanel Orientation="Horizontal">
-                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"/>
-                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"/>
+                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"
+                                              IsChecked="{Binding RulesConfig.Throttle.IsInbound, Mode=TwoWay}"/>
+                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"
+                                              IsChecked="{Binding RulesConfig.Throttle.IsOutbound, Mode=TwoWay}"/>
                             </StackPanel>
                         </Border>
                         
@@ -541,8 +609,10 @@
                                 BorderBrush="{DynamicResource BorderBrush}" 
                                 BorderThickness="1" HorizontalAlignment="Left">
                             <StackPanel Orientation="Horizontal">
-                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"/>
-                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"/>
+                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"
+                                              IsChecked="{Binding RulesConfig.Bandwidth.IsInbound, Mode=TwoWay}"/>
+                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"
+                                              IsChecked="{Binding RulesConfig.Bandwidth.IsOutbound, Mode=TwoWay}"/>
                             </StackPanel>
                         </Border>
                         
@@ -550,6 +620,59 @@
                             <TextBox Style="{StaticResource ParamInputStyle}" Width="80"
                                      Text="{Binding RulesConfig.Bandwidth.Bps, UpdateSourceTrigger=PropertyChanged}"/>
                             <TextBlock Text="B/s" Foreground="{DynamicResource ForegroundSecondaryBrush}"
+                                       FontSize="{DynamicResource FontSizeS}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- CARD: Loss Pattern - BOUND -->
+                <Border Style="{StaticResource CardStyle}" Width="210" Margin="8">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="16"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="12"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        
+                        <Grid Grid.Row="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Loss Pattern"
+                                       Foreground="{DynamicResource ForegroundPrimaryBrush}"
+                                       FontSize="{DynamicResource FontSizeL}"
+                                       FontWeight="Medium" VerticalAlignment="Center"/>
+                            <ToggleButton Grid.Column="1"
+                                          Style="{StaticResource ToggleSwitchStyle}"
+                                          IsChecked="{Binding RulesConfig.LossPattern.Enabled, Mode=TwoWay}"/>
+                        </Grid>
+                        
+                        <Border Grid.Row="1" Style="{StaticResource CategoryBadgeStyle}"
+                                Background="{DynamicResource DropBadgeBackgroundBrush}" Margin="0,6,0,0">
+                            <TextBlock Text="DROP" Foreground="{DynamicResource DropBadgeForegroundBrush}" FontSize="10" FontWeight="SemiBold"/>
+                        </Border>
+                        
+                        <Border Grid.Row="3" CornerRadius="4" 
+                                BorderBrush="{DynamicResource BorderBrush}" 
+                                BorderThickness="1" HorizontalAlignment="Left">
+                            <StackPanel Orientation="Horizontal">
+                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"
+                                              IsChecked="{Binding RulesConfig.LossPattern.IsInbound, Mode=TwoWay}"/>
+                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"
+                                              IsChecked="{Binding RulesConfig.LossPattern.IsOutbound, Mode=TwoWay}"/>
+                            </StackPanel>
+                        </Border>
+                        
+                        <StackPanel Grid.Row="5" Orientation="Horizontal">
+                            <TextBlock Text="Length" Foreground="{DynamicResource ForegroundMutedBrush}"
+                                       FontSize="{DynamicResource FontSizeS}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <TextBox Style="{StaticResource ParamInputStyle}" Width="40"
+                                     Text="{Binding RulesConfig.LossPattern.Length, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="bits" Foreground="{DynamicResource ForegroundSecondaryBrush}"
                                        FontSize="{DynamicResource FontSizeS}" VerticalAlignment="Center" Margin="6,0,0,0"/>
                         </StackPanel>
                     </Grid>
@@ -594,8 +717,10 @@
                                 BorderBrush="{DynamicResource BorderBrush}" 
                                 BorderThickness="1" HorizontalAlignment="Left">
                             <StackPanel Orientation="Horizontal">
-                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"/>
-                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"/>
+                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"
+                                              IsChecked="{Binding RulesConfig.Duplicate.IsInbound, Mode=TwoWay}"/>
+                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"
+                                              IsChecked="{Binding RulesConfig.Duplicate.IsOutbound, Mode=TwoWay}"/>
                             </StackPanel>
                         </Border>
                         
@@ -643,8 +768,10 @@
                                 BorderBrush="{DynamicResource BorderBrush}" 
                                 BorderThickness="1" HorizontalAlignment="Left">
                             <StackPanel Orientation="Horizontal">
-                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"/>
-                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"/>
+                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"
+                                              IsChecked="{Binding RulesConfig.Tamper.IsInbound, Mode=TwoWay}"/>
+                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"
+                                              IsChecked="{Binding RulesConfig.Tamper.IsOutbound, Mode=TwoWay}"/>
                             </StackPanel>
                         </Border>
                         
@@ -697,8 +824,10 @@
                                 BorderBrush="{DynamicResource BorderBrush}" 
                                 BorderThickness="1" HorizontalAlignment="Left">
                             <StackPanel Orientation="Horizontal">
-                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"/>
-                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"/>
+                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"
+                                              IsChecked="{Binding RulesConfig.MtuClamp.IsInbound, Mode=TwoWay}"/>
+                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"
+                                              IsChecked="{Binding RulesConfig.MtuClamp.IsOutbound, Mode=TwoWay}"/>
                             </StackPanel>
                         </Border>
                         
@@ -707,6 +836,59 @@
                                        FontSize="{DynamicResource FontSizeS}" VerticalAlignment="Center" Margin="0,0,6,0"/>
                             <TextBox Style="{StaticResource ParamInputStyle}" Width="70"
                                      Text="{Binding RulesConfig.MtuClamp.MaxSize, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="bytes" Foreground="{DynamicResource ForegroundSecondaryBrush}"
+                                       FontSize="{DynamicResource FontSizeS}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- CARD: Window Clamp - BOUND -->
+                <Border Style="{StaticResource CardStyle}" Width="210" Margin="8">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="16"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="12"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        
+                        <Grid Grid.Row="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Window Clamp"
+                                       Foreground="{DynamicResource ForegroundPrimaryBrush}"
+                                       FontSize="{DynamicResource FontSizeL}"
+                                       FontWeight="Medium" VerticalAlignment="Center"/>
+                            <ToggleButton Grid.Column="1"
+                                          Style="{StaticResource ToggleSwitchStyle}"
+                                          IsChecked="{Binding RulesConfig.WindowClamp.Enabled, Mode=TwoWay}"/>
+                        </Grid>
+                        
+                        <Border Grid.Row="1" Style="{StaticResource CategoryBadgeStyle}"
+                                Background="{DynamicResource ModifyBadgeBackgroundBrush}" Margin="0,6,0,0">
+                            <TextBlock Text="MODIFY" Foreground="{DynamicResource ModifyBadgeForegroundBrush}" FontSize="10" FontWeight="SemiBold"/>
+                        </Border>
+                        
+                        <Border Grid.Row="3" CornerRadius="4" 
+                                BorderBrush="{DynamicResource BorderBrush}" 
+                                BorderThickness="1" HorizontalAlignment="Left">
+                            <StackPanel Orientation="Horizontal">
+                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"
+                                              IsChecked="{Binding RulesConfig.WindowClamp.IsInbound, Mode=TwoWay}"/>
+                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"
+                                              IsChecked="{Binding RulesConfig.WindowClamp.IsOutbound, Mode=TwoWay}"/>
+                            </StackPanel>
+                        </Border>
+                        
+                        <StackPanel Grid.Row="5" Orientation="Horizontal">
+                            <TextBlock Text="Max" Foreground="{DynamicResource ForegroundMutedBrush}"
+                                       FontSize="{DynamicResource FontSizeS}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <TextBox Style="{StaticResource ParamInputStyle}" Width="70"
+                                     Text="{Binding RulesConfig.WindowClamp.MaxWindow, UpdateSourceTrigger=PropertyChanged}"/>
                             <TextBlock Text="bytes" Foreground="{DynamicResource ForegroundSecondaryBrush}"
                                        FontSize="{DynamicResource FontSizeS}" VerticalAlignment="Center" Margin="6,0,0,0"/>
                         </StackPanel>
@@ -759,8 +941,10 @@
                                 BorderBrush="{DynamicResource BorderBrush}" 
                                 BorderThickness="1" HorizontalAlignment="Left">
                             <StackPanel Orientation="Horizontal">
-                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"/>
-                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"/>
+                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"
+                                              IsChecked="{Binding RulesConfig.TcpRst.IsInbound, Mode=TwoWay}"/>
+                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"
+                                              IsChecked="{Binding RulesConfig.TcpRst.IsOutbound, Mode=TwoWay}"/>
                             </StackPanel>
                         </Border>
                         

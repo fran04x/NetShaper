@@ -2,75 +2,74 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!-- ══════════════════════════════════════════════════════════════════════════
-         NETSHAPER LIGHT THEME - Colors AND Brushes
+         NETSHAPER LIGHT THEME - Discord Style
          
-         Contains both Color and Brush definitions for proper runtime theme switching.
-         Symmetric with Colors.Dark.xaml
+         Based on Discord's brand colors and light theme palette.
          ══════════════════════════════════════════════════════════════════════════ -->
     
     <!-- Background hierarchy (3 levels for depth) -->
-    <Color x:Key="BackgroundLevel0Color">#FAFAFA</Color>
-    <Color x:Key="BackgroundLevel1Color">#FFFFFF</Color>
-    <Color x:Key="BackgroundLevel2Color">#F5F5F5</Color>
+    <Color x:Key="BackgroundLevel0Color">#F2F3F5</Color>      <!-- Main background -->
+    <Color x:Key="BackgroundLevel1Color">#FFFFFF</Color>      <!-- Cards/panels -->
+    <Color x:Key="BackgroundLevel2Color">#E3E5E8</Color>      <!-- Nested/hover elements -->
     
     <!-- Foreground hierarchy -->
-    <Color x:Key="ForegroundPrimaryColor">#1A1A1A</Color>
-    <Color x:Key="ForegroundSecondaryColor">#666666</Color>
-    <Color x:Key="ForegroundMutedColor">#999999</Color>
+    <Color x:Key="ForegroundPrimaryColor">#060607</Color>     <!-- Primary text -->
+    <Color x:Key="ForegroundSecondaryColor">#4E5058</Color>   <!-- Secondary text -->
+    <Color x:Key="ForegroundMutedColor">#80848E</Color>       <!-- Muted/disabled -->
     
-    <!-- Accent colors -->
-    <Color x:Key="AccentColor">#0078D4</Color>
-    <Color x:Key="AccentHoverColor">#106EBE</Color>
-    <Color x:Key="AccentActiveColor">#005A9E</Color>
+    <!-- Accent colors - Discord Blurple -->
+    <Color x:Key="AccentColor">#5865F2</Color>                <!-- Blurple -->
+    <Color x:Key="AccentHoverColor">#4752C4</Color>           <!-- Darker blurple -->
+    <Color x:Key="AccentActiveColor">#3C45A5</Color>          <!-- Even darker -->
     
-    <!-- Semantic colors -->
-    <Color x:Key="SuccessColor">#28A745</Color>
-    <Color x:Key="DangerColor">#DC3545</Color>
-    <Color x:Key="DangerHoverColor">#C82333</Color>
-    <Color x:Key="WarningColor">#FFC107</Color>
+    <!-- Semantic colors - Discord palette -->
+    <Color x:Key="SuccessColor">#57F287</Color>               <!-- Discord Green -->
+    <Color x:Key="DangerColor">#ED4245</Color>                <!-- Discord Red -->
+    <Color x:Key="DangerHoverColor">#D93A3D</Color>           <!-- Darker red -->
+    <Color x:Key="WarningColor">#FEE75C</Color>               <!-- Discord Yellow -->
     
     <!-- Border/separator -->
-    <Color x:Key="BorderColor">#E0E0E0</Color>
-    <Color x:Key="BorderSubtleColor">#EEEEEE</Color>
+    <Color x:Key="BorderColor">#E3E5E8</Color>
+    <Color x:Key="BorderSubtleColor">#EBEDEF</Color>
     
     <!-- Category badge colors -->
-    <Color x:Key="DropBadgeBackgroundColor">#FFEBEE</Color>
-    <Color x:Key="DropBadgeForegroundColor">#C62828</Color>
-    <Color x:Key="DelayBadgeBackgroundColor">#FFF3E0</Color>
-    <Color x:Key="DelayBadgeForegroundColor">#E65100</Color>
-    <Color x:Key="ModifyBadgeBackgroundColor">#E3F2FD</Color>
-    <Color x:Key="ModifyBadgeForegroundColor">#1565C0</Color>
-    <Color x:Key="InjectBadgeBackgroundColor">#F3E5F5</Color>
-    <Color x:Key="InjectBadgeForegroundColor">#7B1FA2</Color>
+    <Color x:Key="DropBadgeBackgroundColor">#FDE8E8</Color>
+    <Color x:Key="DropBadgeForegroundColor">#ED4245</Color>
+    <Color x:Key="DelayBadgeBackgroundColor">#FEF8E0</Color>
+    <Color x:Key="DelayBadgeForegroundColor">#B5851B</Color>
+    <Color x:Key="ModifyBadgeBackgroundColor">#E8EAFD</Color>
+    <Color x:Key="ModifyBadgeForegroundColor">#5865F2</Color>
+    <Color x:Key="InjectBadgeBackgroundColor">#FCE8F3</Color>
+    <Color x:Key="InjectBadgeForegroundColor">#EB459E</Color>
 
     <!-- ══════════════════════════════════════════════════════════════════════════
-         BRUSHES - Defined in theme file for proper runtime switching
+         BRUSHES
          ══════════════════════════════════════════════════════════════════════════ -->
     
-    <SolidColorBrush x:Key="BackgroundLevel0Brush" Color="#FAFAFA"/>
+    <SolidColorBrush x:Key="BackgroundLevel0Brush" Color="#F2F3F5"/>
     <SolidColorBrush x:Key="BackgroundLevel1Brush" Color="#FFFFFF"/>
-    <SolidColorBrush x:Key="BackgroundLevel2Brush" Color="#F5F5F5"/>
-    <SolidColorBrush x:Key="ForegroundPrimaryBrush" Color="#1A1A1A"/>
-    <SolidColorBrush x:Key="ForegroundSecondaryBrush" Color="#666666"/>
-    <SolidColorBrush x:Key="ForegroundMutedBrush" Color="#999999"/>
-    <SolidColorBrush x:Key="AccentBrush" Color="#0078D4"/>
-    <SolidColorBrush x:Key="AccentHoverBrush" Color="#106EBE"/>
-    <SolidColorBrush x:Key="AccentActiveBrush" Color="#005A9E"/>
-    <SolidColorBrush x:Key="SuccessBrush" Color="#28A745"/>
-    <SolidColorBrush x:Key="DangerBrush" Color="#DC3545"/>
-    <SolidColorBrush x:Key="DangerHoverBrush" Color="#C82333"/>
-    <SolidColorBrush x:Key="WarningBrush" Color="#FFC107"/>
-    <SolidColorBrush x:Key="BorderBrush" Color="#E0E0E0"/>
-    <SolidColorBrush x:Key="BorderSubtleBrush" Color="#EEEEEE"/>
+    <SolidColorBrush x:Key="BackgroundLevel2Brush" Color="#E3E5E8"/>
+    <SolidColorBrush x:Key="ForegroundPrimaryBrush" Color="#060607"/>
+    <SolidColorBrush x:Key="ForegroundSecondaryBrush" Color="#4E5058"/>
+    <SolidColorBrush x:Key="ForegroundMutedBrush" Color="#80848E"/>
+    <SolidColorBrush x:Key="AccentBrush" Color="#5865F2"/>
+    <SolidColorBrush x:Key="AccentHoverBrush" Color="#4752C4"/>
+    <SolidColorBrush x:Key="AccentActiveBrush" Color="#3C45A5"/>
+    <SolidColorBrush x:Key="SuccessBrush" Color="#57F287"/>
+    <SolidColorBrush x:Key="DangerBrush" Color="#ED4245"/>
+    <SolidColorBrush x:Key="DangerHoverBrush" Color="#D93A3D"/>
+    <SolidColorBrush x:Key="WarningBrush" Color="#FEE75C"/>
+    <SolidColorBrush x:Key="BorderBrush" Color="#E3E5E8"/>
+    <SolidColorBrush x:Key="BorderSubtleBrush" Color="#EBEDEF"/>
     
     <!-- Badge brushes -->
-    <SolidColorBrush x:Key="DropBadgeBackgroundBrush" Color="#FFEBEE"/>
-    <SolidColorBrush x:Key="DropBadgeForegroundBrush" Color="#C62828"/>
-    <SolidColorBrush x:Key="DelayBadgeBackgroundBrush" Color="#FFF3E0"/>
-    <SolidColorBrush x:Key="DelayBadgeForegroundBrush" Color="#E65100"/>
-    <SolidColorBrush x:Key="ModifyBadgeBackgroundBrush" Color="#E3F2FD"/>
-    <SolidColorBrush x:Key="ModifyBadgeForegroundBrush" Color="#1565C0"/>
-    <SolidColorBrush x:Key="InjectBadgeBackgroundBrush" Color="#F3E5F5"/>
-    <SolidColorBrush x:Key="InjectBadgeForegroundBrush" Color="#7B1FA2"/>
+    <SolidColorBrush x:Key="DropBadgeBackgroundBrush" Color="#FDE8E8"/>
+    <SolidColorBrush x:Key="DropBadgeForegroundBrush" Color="#ED4245"/>
+    <SolidColorBrush x:Key="DelayBadgeBackgroundBrush" Color="#FEF8E0"/>
+    <SolidColorBrush x:Key="DelayBadgeForegroundBrush" Color="#B5851B"/>
+    <SolidColorBrush x:Key="ModifyBadgeBackgroundBrush" Color="#E8EAFD"/>
+    <SolidColorBrush x:Key="ModifyBadgeForegroundBrush" Color="#5865F2"/>
+    <SolidColorBrush x:Key="InjectBadgeBackgroundBrush" Color="#FCE8F3"/>
+    <SolidColorBrush x:Key="InjectBadgeForegroundBrush" Color="#EB459E"/>
 
 </ResourceDictionary>

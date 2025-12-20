@@ -100,6 +100,7 @@ namespace NetShaper.App.ViewModels
                     _isDarkTheme = value;
                     OnPropertyChanged();
                     OnPropertyChanged(nameof(ThemeIcon));
+                    OnPropertyChanged(nameof(ThemeIconBrush));
                 }
             }
         }
@@ -109,6 +110,14 @@ namespace NetShaper.App.ViewModels
         /// Uses Segoe MDL2 Assets: E706 = brightness (sun), E708 = brightness down (moon-like)
         /// </summary>
         public string ThemeIcon => IsDarkTheme ? "\uE706" : "\uE708";
+
+        /// <summary>
+        /// Icon color: light in dark mode, dark in light mode.
+        /// </summary>
+        public System.Windows.Media.SolidColorBrush ThemeIconBrush => 
+            IsDarkTheme 
+                ? new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(242, 243, 245)) // Light color
+                : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(30, 31, 34));   // Dark color
 
         /// <summary>
         /// Filter text for searching rules.
