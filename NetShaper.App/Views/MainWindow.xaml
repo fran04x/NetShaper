@@ -1,4 +1,4 @@
-<Window x:Class="NetShaper.App.Views.MainWindow"
+﻿<Window x:Class="NetShaper.App.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -7,27 +7,8 @@
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=vm:MainViewModel, IsDesignTimeCreatable=True}"
         Title="NetShaper" 
-        Height="720" 
-        Width="1200"
-        MinWidth="900"
-        MinHeight="600"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource BackgroundLevel0Brush}">
-
-    <!-- ═══════════════════════════════════════════════════════════════════════════════
-         NETSHAPER MAIN WINDOW - CONNECTED TO VIEWMODEL
-         
-         All bindings now connected to MainViewModel:
-         • RulesConfig.* → individual rule configs
-         • IsRunning → engine state
-         • StartStopButtonText → button label
-         • FilterText → search box
-         • ToggleRunningCommand → START/STOP button
-         
-         DESIGNER SUPPORT:
-         • d:DesignInstance creates a MainViewModel at design-time
-         • IsDesignTimeCreatable=True uses the parameterless constructor
-         ═══════════════════════════════════════════════════════════════════════════════ -->
 
     <Grid>
         <Grid.RowDefinitions>
@@ -35,76 +16,72 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- ═══════════════════════════════════════════════════════════════════════════
-             HEADER BAR - Connected bindings
-             ═══════════════════════════════════════════════════════════════════════════ -->
+        <!-- HEADER BAR -->
         <Border Grid.Row="0"
                 Background="{DynamicResource BackgroundLevel1Brush}"
                 BorderBrush="{DynamicResource BorderSubtleBrush}"
                 BorderThickness="0,0,0,1"
-                Padding="24,16">
+                Padding="16,12">
             
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="8"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="32"/>
-                    <ColumnDefinition Width="*" MaxWidth="400"/>
-                    <ColumnDefinition Width="24"/>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="16"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="12"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- App Title -->
+                <!-- Logo + Title -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Border Width="32" Height="32" Background="{DynamicResource AccentBrush}" 
-                            CornerRadius="6" Margin="0,0,12,0">
-                        <TextBlock Text="N" Foreground="White" FontWeight="Bold" FontSize="18"
+                    <Border Width="28" Height="28" Background="{DynamicResource AccentBrush}" 
+                            CornerRadius="4" Margin="0,0,8,0">
+                        <TextBlock Text="N" Foreground="White" FontWeight="Bold" FontSize="16"
                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="NetShaper"
-                                   Foreground="{DynamicResource ForegroundPrimaryBrush}"
-                                   FontSize="{DynamicResource FontSizeXL}"
-                                   FontWeight="SemiBold"/>
-                        <TextBlock Text="Network Traffic Shaping"
-                                   Foreground="{DynamicResource ForegroundMutedBrush}"
-                                   FontSize="{DynamicResource FontSizeXS}"
-                                   Margin="0,-2,0,0"/>
-                    </StackPanel>
+                    <TextBlock Text="NetShaper"
+                               Foreground="{DynamicResource ForegroundPrimaryBrush}"
+                               FontSize="{DynamicResource FontSizeL}"
+                               FontWeight="SemiBold"
+                               VerticalAlignment="Center"/>
+                    <Button Style="{StaticResource ThemeToggleStyle}"
+                            Content="{Binding ThemeIcon}"
+                            Foreground="{Binding ThemeIconBrush}"
+                            Command="{Binding ToggleThemeCommand}"
+                            FontFamily="Segoe MDL2 Assets"
+                            Margin="8,0,0,0"
+                            VerticalAlignment="Center"/>
                 </StackPanel>
 
-                <!-- Theme Toggle Button (next to logo, typical modern app placement) -->
-                <Button Grid.Column="2"
-                        Style="{StaticResource ThemeToggleStyle}"
-                        Content="{Binding ThemeIcon}"
-                        Foreground="{Binding ThemeIconBrush}"
-                        Command="{Binding ToggleThemeCommand}"
-                        FontFamily="Segoe MDL2 Assets"
-                        VerticalAlignment="Center"
-                        ToolTip="Toggle Dark/Light Theme"/>
-
-                <!-- Filter TextBox - BOUND to FilterText -->
-                <TextBox Grid.Column="4"
-                         Style="{StaticResource SearchBoxStyle}"
+                <!-- Filter TextBox -->
+                <TextBox Grid.Column="2"
                          Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"
-                         VerticalAlignment="Center"/>
+                         VerticalAlignment="Center">
+                    <TextBox.Style>
+                        <Style TargetType="TextBox" BasedOn="{StaticResource SearchBoxStyle}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsFilterValid}" Value="False">
+                                    <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBox.Style>
+                </TextBox>
 
                 <!-- Presets Dropdown -->
-                <ComboBox Grid.Column="6"
+                <ComboBox Grid.Column="4"
                           Style="{StaticResource PresetComboBoxStyle}"
                           VerticalAlignment="Center">
-                    <ComboBoxItem Content="No Preset" IsSelected="True"/>
+                    <ComboBoxItem Content="Preset" IsSelected="True"/>
                     <ComboBoxItem Content="High Latency"/>
                     <ComboBoxItem Content="Packet Loss"/>
-                    <ComboBoxItem Content="Poor Connection"/>
                     <ComboBoxItem Content="Mobile 3G"/>
                 </ComboBox>
 
-                <!-- START/STOP ToggleButton - Blue when stopped, Red when running -->
-                <ToggleButton Grid.Column="8"
+                <!-- START Button -->
+                <ToggleButton Grid.Column="6"
                               Style="{StaticResource StartStopToggleStyle}"
                               Content="{Binding StartStopButtonText}"
                               IsChecked="{Binding IsRunning, Mode=TwoWay}"
@@ -112,850 +89,757 @@
             </Grid>
         </Border>
 
-        <!-- ═══════════════════════════════════════════════════════════════════════════
-             MAIN CONTENT: RULE CARDS - BOUND TO RulesConfig.*
-             ═══════════════════════════════════════════════════════════════════════════ -->
+        <!-- MAIN CONTENT: RULE ROWS -->
         <ScrollViewer Grid.Row="1"
                       VerticalScrollBarVisibility="Auto"
-                      HorizontalScrollBarVisibility="Disabled"
-                      Padding="24">
+                      HorizontalScrollBarVisibility="Disabled">
             
-            <WrapPanel Orientation="Horizontal">
+            <Border Background="{DynamicResource BackgroundLevel1Brush}">
+                <StackPanel Grid.IsSharedSizeScope="True">
                     
-                <!-- ═══════════════════════════════════════════════════════════════
-                     DROP RULES
-                     ═══════════════════════════════════════════════════════════════ -->
-                
-                <!-- CARD: Drop - BOUND -->
-                <Border Style="{StaticResource CardStyle}" Width="210" Margin="8">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="16"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        
-                        <Grid Grid.Row="0">
+                    <!-- ROW: Lag -->
+                    <Border Style="{StaticResource RuleRowStyle}">
+                        <Grid>
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColToggle"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColLabel"/>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColActions"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Drop"
-                                       Foreground="{DynamicResource ForegroundPrimaryBrush}"
-                                       FontSize="{DynamicResource FontSizeL}"
-                                       FontWeight="Medium" VerticalAlignment="Center"/>
-                            <ToggleButton Grid.Column="1"
-                                          Style="{StaticResource ToggleSwitchStyle}"
-                                          IsChecked="{Binding RulesConfig.Drop.Enabled, Mode=TwoWay}"/>
-                        </Grid>
-                        
-                        <Border Grid.Row="1" Style="{StaticResource CategoryBadgeStyle}"
-                                Background="{DynamicResource DropBadgeBackgroundBrush}" Margin="0,6,0,0">
-                            <TextBlock Text="DROP" Foreground="{DynamicResource DropBadgeForegroundBrush}" FontSize="10" FontWeight="SemiBold"/>
-                        </Border>
-                        
-                        <Border Grid.Row="3" CornerRadius="4" 
-                                BorderBrush="{DynamicResource BorderBrush}" 
-                                BorderThickness="1" HorizontalAlignment="Left">
-                            <StackPanel Orientation="Horizontal">
-                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"
-                                              IsChecked="{Binding RulesConfig.Drop.IsInbound, Mode=TwoWay}"/>
-                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"
-                                              IsChecked="{Binding RulesConfig.Drop.IsOutbound, Mode=TwoWay}"/>
-                            </StackPanel>
-                        </Border>
-                    </Grid>
-                </Border>
-
-                <!-- CARD: Blackhole - BOUND -->
-                <Border Style="{StaticResource CardStyle}" Width="210" Margin="8">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="16"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        
-                        <Grid Grid.Row="0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Blackhole"
-                                       Foreground="{DynamicResource ForegroundPrimaryBrush}"
-                                       FontSize="{DynamicResource FontSizeL}"
-                                       FontWeight="Medium" VerticalAlignment="Center"/>
-                            <ToggleButton Grid.Column="1"
-                                          Style="{StaticResource ToggleSwitchStyle}"
-                                          IsChecked="{Binding RulesConfig.Blackhole.Enabled, Mode=TwoWay}"/>
-                        </Grid>
-                        
-                        <Border Grid.Row="1" Style="{StaticResource CategoryBadgeStyle}"
-                                Background="{DynamicResource DropBadgeBackgroundBrush}" Margin="0,6,0,0">
-                            <TextBlock Text="DROP" Foreground="{DynamicResource DropBadgeForegroundBrush}" FontSize="10" FontWeight="SemiBold"/>
-                        </Border>
-                        
-                        <Border Grid.Row="3" CornerRadius="4" 
-                                BorderBrush="{DynamicResource BorderBrush}" 
-                                BorderThickness="1" HorizontalAlignment="Left">
-                            <StackPanel Orientation="Horizontal">
-                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"
-                                              IsChecked="{Binding RulesConfig.Blackhole.IsInbound, Mode=TwoWay}"/>
-                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"
-                                              IsChecked="{Binding RulesConfig.Blackhole.IsOutbound, Mode=TwoWay}"/>
-                            </StackPanel>
-                        </Border>
-                    </Grid>
-                </Border>
-
-                <!-- CARD: SynDrop - BOUND -->
-                <Border Style="{StaticResource CardStyle}" Width="210" Margin="8">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="16"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        
-                        <Grid Grid.Row="0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="SYN Drop"
-                                       Foreground="{DynamicResource ForegroundPrimaryBrush}"
-                                       FontSize="{DynamicResource FontSizeL}"
-                                       FontWeight="Medium" VerticalAlignment="Center"/>
-                            <ToggleButton Grid.Column="1"
-                                          Style="{StaticResource ToggleSwitchStyle}"
-                                          IsChecked="{Binding RulesConfig.SynDrop.Enabled, Mode=TwoWay}"/>
-                        </Grid>
-                        
-                        <Border Grid.Row="1" Style="{StaticResource CategoryBadgeStyle}"
-                                Background="{DynamicResource DropBadgeBackgroundBrush}" Margin="0,6,0,0">
-                            <TextBlock Text="DROP" Foreground="{DynamicResource DropBadgeForegroundBrush}" FontSize="10" FontWeight="SemiBold"/>
-                        </Border>
-                        
-                        <Border Grid.Row="3" CornerRadius="4" 
-                                BorderBrush="{DynamicResource BorderBrush}" 
-                                BorderThickness="1" HorizontalAlignment="Left">
-                            <StackPanel Orientation="Horizontal">
-                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"
-                                              IsChecked="{Binding RulesConfig.SynDrop.IsInbound, Mode=TwoWay}"/>
-                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"
-                                              IsChecked="{Binding RulesConfig.SynDrop.IsOutbound, Mode=TwoWay}"/>
-                            </StackPanel>
-                        </Border>
-                    </Grid>
-                </Border>
-
-                <!-- ═══════════════════════════════════════════════════════════════
-                     DELAY RULES
-                     ═══════════════════════════════════════════════════════════════ -->
-
-                <!-- CARD: Lag - BOUND with parameter -->
-                <Border Style="{StaticResource CardStyle}" Width="210" Margin="8">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="16"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="12"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        
-                        <Grid Grid.Row="0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Lag"
-                                       Foreground="{DynamicResource ForegroundPrimaryBrush}"
-                                       FontSize="{DynamicResource FontSizeL}"
-                                       FontWeight="Medium" VerticalAlignment="Center"/>
-                            <ToggleButton Grid.Column="1"
-                                          Style="{StaticResource ToggleSwitchStyle}"
+                            <ToggleButton Grid.Column="0" Style="{StaticResource CompactToggleSwitchStyle}"
                                           IsChecked="{Binding RulesConfig.Lag.Enabled, Mode=TwoWay}"/>
-                        </Grid>
-                        
-                        <Border Grid.Row="1" Style="{StaticResource CategoryBadgeStyle}"
-                                Background="{DynamicResource DelayBadgeBackgroundBrush}" Margin="0,6,0,0">
-                            <TextBlock Text="DELAY" Foreground="{DynamicResource DelayBadgeForegroundBrush}" FontSize="10" FontWeight="SemiBold"/>
-                        </Border>
-                        
-                        <Border Grid.Row="3" CornerRadius="4" 
-                                BorderBrush="{DynamicResource BorderBrush}" 
-                                BorderThickness="1" HorizontalAlignment="Left">
-                            <StackPanel Orientation="Horizontal">
-                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"
-                                              IsChecked="{Binding RulesConfig.Lag.IsInbound, Mode=TwoWay}"/>
-                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"
-                                              IsChecked="{Binding RulesConfig.Lag.IsOutbound, Mode=TwoWay}"/>
+                            <TextBlock Grid.Column="1" Text="Lag" VerticalAlignment="Center" Margin="12,0,0,0" MinWidth="100"
+                                       Foreground="{DynamicResource ForegroundPrimaryBrush}" FontWeight="Medium"/>
+                            <Grid Grid.Column="2" VerticalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlLabel1"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlInput1"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlLabel2"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlInput2"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlUnit"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Delay" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
+                                           VerticalAlignment="Center" Margin="0,0,8,0" MinWidth="55"/>
+                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStyle}"
+                                         Text="{Binding RulesConfig.Lag.DelayMs, UpdateSourceTrigger=PropertyChanged}"
+                                         IsEnabled="{Binding RulesConfig.Lag.Enabled}"/>
+                                <TextBlock Grid.Column="4" Text="ms" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
+                                           VerticalAlignment="Center" Margin="6,0,0,0" MinWidth="25"/>
+                            </Grid>
+                            <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right">
+                                <ToggleButton Content="↓" Style="{StaticResource DirectionArrowStyle}"
+                                              IsChecked="{Binding RulesConfig.Lag.IsInbound, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.Lag.Enabled}"/>
+                                <ToggleButton Content="↑" Style="{StaticResource DirectionArrowStyle}" Margin="4,0,0,0"
+                                              IsChecked="{Binding RulesConfig.Lag.IsOutbound, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.Lag.Enabled}"/>
                             </StackPanel>
-                        </Border>
-                        
-                        <StackPanel Grid.Row="5" Orientation="Horizontal">
-                            <TextBox Style="{StaticResource ParamInputStyle}" 
-                                     Text="{Binding RulesConfig.Lag.DelayMs, UpdateSourceTrigger=PropertyChanged}"/>
-                            <TextBlock Text="ms" Foreground="{DynamicResource ForegroundSecondaryBrush}"
-                                       FontSize="{DynamicResource FontSizeS}" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
-                <!-- CARD: Jitter - BOUND with 2 parameters -->
-                <Border Style="{StaticResource CardStyle}" Width="210" Margin="8">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="16"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="12"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        
-                        <Grid Grid.Row="0">
+                        </Grid>
+                    </Border>
+                    
+                    <!-- ROW: Jitter -->
+                    <Border Style="{StaticResource RuleRowStyle}">
+                        <Grid>
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColToggle"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColLabel"/>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColActions"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Jitter"
-                                       Foreground="{DynamicResource ForegroundPrimaryBrush}"
-                                       FontSize="{DynamicResource FontSizeL}"
-                                       FontWeight="Medium" VerticalAlignment="Center"/>
-                            <ToggleButton Grid.Column="1"
-                                          Style="{StaticResource ToggleSwitchStyle}"
+                            <ToggleButton Grid.Column="0" Style="{StaticResource CompactToggleSwitchStyle}"
                                           IsChecked="{Binding RulesConfig.Jitter.Enabled, Mode=TwoWay}"/>
-                        </Grid>
-                        
-                        <Border Grid.Row="1" Style="{StaticResource CategoryBadgeStyle}"
-                                Background="{DynamicResource DelayBadgeBackgroundBrush}" Margin="0,6,0,0">
-                            <TextBlock Text="DELAY" Foreground="{DynamicResource DelayBadgeForegroundBrush}" FontSize="10" FontWeight="SemiBold"/>
-                        </Border>
-                        
-                        <Border Grid.Row="3" CornerRadius="4" 
-                                BorderBrush="{DynamicResource BorderBrush}" 
-                                BorderThickness="1" HorizontalAlignment="Left">
-                            <StackPanel Orientation="Horizontal">
-                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"
-                                              IsChecked="{Binding RulesConfig.Jitter.IsInbound, Mode=TwoWay}"/>
-                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"
-                                              IsChecked="{Binding RulesConfig.Jitter.IsOutbound, Mode=TwoWay}"/>
+                            <TextBlock Grid.Column="1" Text="Jitter" VerticalAlignment="Center" Margin="12,0,0,0" MinWidth="100"
+                                       Foreground="{DynamicResource ForegroundPrimaryBrush}" FontWeight="Medium"/>
+                            <Grid Grid.Column="2" VerticalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlLabel1"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlInput1"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlLabel2"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlInput2"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlUnit"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Min" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
+                                           VerticalAlignment="Center" Margin="0,0,8,0" MinWidth="55"/>
+                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStyle}"
+                                         Text="{Binding RulesConfig.Jitter.MinMs, UpdateSourceTrigger=PropertyChanged}"
+                                         IsEnabled="{Binding RulesConfig.Jitter.Enabled}"/>
+                                <TextBlock Grid.Column="2" Text="Max" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
+                                           VerticalAlignment="Center" Margin="12,0,8,0" MinWidth="55"/>
+                                <TextBox Grid.Column="3" Style="{StaticResource CompactInputStyle}"
+                                         Text="{Binding RulesConfig.Jitter.MaxMs, UpdateSourceTrigger=PropertyChanged}"
+                                         IsEnabled="{Binding RulesConfig.Jitter.Enabled}"/>
+                                <TextBlock Grid.Column="4" Text="ms" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
+                                           VerticalAlignment="Center" Margin="6,0,0,0" MinWidth="25"/>
+                            </Grid>
+                            <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right">
+                                <ToggleButton Content="↓" Style="{StaticResource DirectionArrowStyle}"
+                                              IsChecked="{Binding RulesConfig.Jitter.IsInbound, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.Jitter.Enabled}"/>
+                                <ToggleButton Content="↑" Style="{StaticResource DirectionArrowStyle}" Margin="4,0,0,0"
+                                              IsChecked="{Binding RulesConfig.Jitter.IsOutbound, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.Jitter.Enabled}"/>
                             </StackPanel>
-                        </Border>
-                        
-                        <StackPanel Grid.Row="5" Orientation="Horizontal">
-                            <TextBox Style="{StaticResource ParamInputStyle}" Width="50"
-                                     Text="{Binding RulesConfig.Jitter.MinMs, UpdateSourceTrigger=PropertyChanged}"/>
-                            <TextBlock Text="–" Foreground="{DynamicResource ForegroundMutedBrush}"
-                                       VerticalAlignment="Center" Margin="6,0"/>
-                            <TextBox Style="{StaticResource ParamInputStyle}" Width="50"
-                                     Text="{Binding RulesConfig.Jitter.MaxMs, UpdateSourceTrigger=PropertyChanged}"/>
-                            <TextBlock Text="ms" Foreground="{DynamicResource ForegroundSecondaryBrush}"
-                                       FontSize="{DynamicResource FontSizeS}" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
-                <!-- CARD: Out of Order - BOUND -->
-                <Border Style="{StaticResource CardStyle}" Width="210" Margin="8">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="16"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="12"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        
-                        <Grid Grid.Row="0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Out of Order"
-                                       Foreground="{DynamicResource ForegroundPrimaryBrush}"
-                                       FontSize="{DynamicResource FontSizeL}"
-                                       FontWeight="Medium" VerticalAlignment="Center"/>
-                            <ToggleButton Grid.Column="1"
-                                          Style="{StaticResource ToggleSwitchStyle}"
-                                          IsChecked="{Binding RulesConfig.OutOfOrder.Enabled, Mode=TwoWay}"/>
                         </Grid>
-                        
-                        <Border Grid.Row="1" Style="{StaticResource CategoryBadgeStyle}"
-                                Background="{DynamicResource DelayBadgeBackgroundBrush}" Margin="0,6,0,0">
-                            <TextBlock Text="DELAY" Foreground="{DynamicResource DelayBadgeForegroundBrush}" FontSize="10" FontWeight="SemiBold"/>
-                        </Border>
-                        
-                        <Border Grid.Row="3" CornerRadius="4" 
-                                BorderBrush="{DynamicResource BorderBrush}" 
-                                BorderThickness="1" HorizontalAlignment="Left">
-                            <StackPanel Orientation="Horizontal">
-                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"
-                                              IsChecked="{Binding RulesConfig.OutOfOrder.IsInbound, Mode=TwoWay}"/>
-                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"
-                                              IsChecked="{Binding RulesConfig.OutOfOrder.IsOutbound, Mode=TwoWay}"/>
-                            </StackPanel>
-                        </Border>
-                        
-                        <StackPanel Grid.Row="5" Orientation="Horizontal">
-                            <TextBlock Text="Max" Foreground="{DynamicResource ForegroundMutedBrush}"
-                                       FontSize="{DynamicResource FontSizeS}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                            <TextBox Style="{StaticResource ParamInputStyle}"
-                                     Text="{Binding RulesConfig.OutOfOrder.MaxDelayMs, UpdateSourceTrigger=PropertyChanged}"/>
-                            <TextBlock Text="ms" Foreground="{DynamicResource ForegroundSecondaryBrush}"
-                                       FontSize="{DynamicResource FontSizeS}" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
-                <!-- CARD: Burst - BOUND -->
-                <Border Style="{StaticResource CardStyle}" Width="210" Margin="8">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="16"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="12"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        
-                        <Grid Grid.Row="0">
+                    </Border>
+                    
+                    <!-- ROW: Drop -->
+                    <Border Style="{StaticResource RuleRowStyle}">
+                        <Grid>
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColToggle"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColLabel"/>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColActions"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Burst"
-                                       Foreground="{DynamicResource ForegroundPrimaryBrush}"
-                                       FontSize="{DynamicResource FontSizeL}"
-                                       FontWeight="Medium" VerticalAlignment="Center"/>
-                            <ToggleButton Grid.Column="1"
-                                          Style="{StaticResource ToggleSwitchStyle}"
-                                          IsChecked="{Binding RulesConfig.Burst.Enabled, Mode=TwoWay}"/>
+                            <ToggleButton Grid.Column="0" Style="{StaticResource CompactToggleSwitchStyle}"
+                                          IsChecked="{Binding RulesConfig.Drop.Enabled, Mode=TwoWay}"/>
+                            <TextBlock Grid.Column="1" Text="Drop" VerticalAlignment="Center" Margin="12,0,0,0" MinWidth="100"
+                                       Foreground="{DynamicResource ForegroundPrimaryBrush}" FontWeight="Medium"/>
+                            <Grid Grid.Column="2" VerticalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlLabel1"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlInput1"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlLabel2"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlInput2"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlUnit"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Chance" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
+                                           VerticalAlignment="Center" Margin="0,0,8,0" MinWidth="55"/>
+                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStyle}"
+                                         Text="{Binding RulesConfig.Drop.Chance, UpdateSourceTrigger=PropertyChanged}"
+                                         IsEnabled="{Binding RulesConfig.Drop.Enabled}"/>
+                                <TextBlock Grid.Column="4" Text="%" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
+                                           VerticalAlignment="Center" Margin="6,0,0,0" MinWidth="25"/>
+                            </Grid>
+                            <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right">
+                                <ToggleButton Content="↓" Style="{StaticResource DirectionArrowStyle}"
+                                              IsChecked="{Binding RulesConfig.Drop.IsInbound, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.Drop.Enabled}"/>
+                                <ToggleButton Content="↑" Style="{StaticResource DirectionArrowStyle}" Margin="4,0,0,0"
+                                              IsChecked="{Binding RulesConfig.Drop.IsOutbound, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.Drop.Enabled}"/>
+                            </StackPanel>
                         </Grid>
-                        
-                        <Border Grid.Row="1" Style="{StaticResource CategoryBadgeStyle}"
-                                Background="{DynamicResource DelayBadgeBackgroundBrush}" Margin="0,6,0,0">
-                            <TextBlock Text="DELAY" Foreground="{DynamicResource DelayBadgeForegroundBrush}" FontSize="10" FontWeight="SemiBold"/>
-                        </Border>
-                        
-                        <Border Grid.Row="3" CornerRadius="4" 
-                                BorderBrush="{DynamicResource BorderBrush}" 
-                                BorderThickness="1" HorizontalAlignment="Left">
-                            <StackPanel Orientation="Horizontal">
-                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"
-                                              IsChecked="{Binding RulesConfig.Burst.IsInbound, Mode=TwoWay}"/>
-                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"
-                                              IsChecked="{Binding RulesConfig.Burst.IsOutbound, Mode=TwoWay}"/>
-                            </StackPanel>
-                        </Border>
-                        
-                        <StackPanel Grid.Row="5" Orientation="Horizontal">
-                            <TextBlock Text="Interval" Foreground="{DynamicResource ForegroundMutedBrush}"
-                                       FontSize="{DynamicResource FontSizeS}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                            <TextBox Style="{StaticResource ParamInputStyle}"
-                                     Text="{Binding RulesConfig.Burst.IntervalMs, UpdateSourceTrigger=PropertyChanged}"/>
-                            <TextBlock Text="ms" Foreground="{DynamicResource ForegroundSecondaryBrush}"
-                                       FontSize="{DynamicResource FontSizeS}" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
-                <!-- CARD: ACK Delay - BOUND -->
-                <Border Style="{StaticResource CardStyle}" Width="210" Margin="8">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="16"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="12"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        
-                        <Grid Grid.Row="0">
+                    </Border>
+                    
+                    <!-- ROW: Throttle -->
+                    <Border Style="{StaticResource RuleRowStyle}">
+                        <Grid>
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColToggle"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColLabel"/>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColActions"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="ACK Delay"
-                                       Foreground="{DynamicResource ForegroundPrimaryBrush}"
-                                       FontSize="{DynamicResource FontSizeL}"
-                                       FontWeight="Medium" VerticalAlignment="Center"/>
-                            <ToggleButton Grid.Column="1"
-                                          Style="{StaticResource ToggleSwitchStyle}"
-                                          IsChecked="{Binding RulesConfig.AckDelay.Enabled, Mode=TwoWay}"/>
-                        </Grid>
-                        
-                        <Border Grid.Row="1" Style="{StaticResource CategoryBadgeStyle}"
-                                Background="{DynamicResource DelayBadgeBackgroundBrush}" Margin="0,6,0,0">
-                            <TextBlock Text="DELAY" Foreground="{DynamicResource DelayBadgeForegroundBrush}" FontSize="10" FontWeight="SemiBold"/>
-                        </Border>
-                        
-                        <Border Grid.Row="3" CornerRadius="4" 
-                                BorderBrush="{DynamicResource BorderBrush}" 
-                                BorderThickness="1" HorizontalAlignment="Left">
-                            <StackPanel Orientation="Horizontal">
-                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"
-                                              IsChecked="{Binding RulesConfig.AckDelay.IsInbound, Mode=TwoWay}"/>
-                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"
-                                              IsChecked="{Binding RulesConfig.AckDelay.IsOutbound, Mode=TwoWay}"/>
-                            </StackPanel>
-                        </Border>
-                        
-                        <StackPanel Grid.Row="5" Orientation="Horizontal">
-                            <TextBox Style="{StaticResource ParamInputStyle}" 
-                                     Text="{Binding RulesConfig.AckDelay.DelayMs, UpdateSourceTrigger=PropertyChanged}"/>
-                            <TextBlock Text="ms" Foreground="{DynamicResource ForegroundSecondaryBrush}"
-                                       FontSize="{DynamicResource FontSizeS}" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
-                <!-- ═══════════════════════════════════════════════════════════════
-                     RATE LIMITING (DROP category)
-                     ═══════════════════════════════════════════════════════════════ -->
-
-                <!-- CARD: Throttle - BOUND -->
-                <Border Style="{StaticResource CardStyle}" Width="210" Margin="8">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="16"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="12"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        
-                        <Grid Grid.Row="0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Throttle"
-                                       Foreground="{DynamicResource ForegroundPrimaryBrush}"
-                                       FontSize="{DynamicResource FontSizeL}"
-                                       FontWeight="Medium" VerticalAlignment="Center"/>
-                            <ToggleButton Grid.Column="1"
-                                          Style="{StaticResource ToggleSwitchStyle}"
+                            <ToggleButton Grid.Column="0" Style="{StaticResource CompactToggleSwitchStyle}"
                                           IsChecked="{Binding RulesConfig.Throttle.Enabled, Mode=TwoWay}"/>
-                        </Grid>
-                        
-                        <Border Grid.Row="1" Style="{StaticResource CategoryBadgeStyle}"
-                                Background="{DynamicResource DropBadgeBackgroundBrush}" Margin="0,6,0,0">
-                            <TextBlock Text="DROP" Foreground="{DynamicResource DropBadgeForegroundBrush}" FontSize="10" FontWeight="SemiBold"/>
-                        </Border>
-                        
-                        <Border Grid.Row="3" CornerRadius="4" 
-                                BorderBrush="{DynamicResource BorderBrush}" 
-                                BorderThickness="1" HorizontalAlignment="Left">
-                            <StackPanel Orientation="Horizontal">
-                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"
-                                              IsChecked="{Binding RulesConfig.Throttle.IsInbound, Mode=TwoWay}"/>
-                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"
-                                              IsChecked="{Binding RulesConfig.Throttle.IsOutbound, Mode=TwoWay}"/>
+                            <TextBlock Grid.Column="1" Text="Throttle" VerticalAlignment="Center" Margin="12,0,0,0" MinWidth="100"
+                                       Foreground="{DynamicResource ForegroundPrimaryBrush}" FontWeight="Medium"/>
+                            <Grid Grid.Column="2" VerticalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlLabel1"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlInput1"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlLabel2"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlInput2"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlUnit"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="PPS" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
+                                           VerticalAlignment="Center" Margin="0,0,8,0" MinWidth="55"/>
+                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStyle}" Width="55"
+                                         Text="{Binding RulesConfig.Throttle.Pps, UpdateSourceTrigger=PropertyChanged}"
+                                         IsEnabled="{Binding RulesConfig.Throttle.Enabled}"/>
+                                <TextBlock Grid.Column="2" Text="Timeframe" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
+                                           VerticalAlignment="Center" Margin="12,0,8,0" MinWidth="55"/>
+                                <TextBox Grid.Column="3" Style="{StaticResource CompactInputStyle}" Width="55"
+                                         Text="{Binding RulesConfig.Throttle.TimeframeMs, UpdateSourceTrigger=PropertyChanged}"
+                                         IsEnabled="{Binding RulesConfig.Throttle.Enabled}"/>
+                                <TextBlock Grid.Column="4" Text="ms" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
+                                           VerticalAlignment="Center" Margin="6,0,0,0" MinWidth="25"/>
+                                <StackPanel Grid.Column="5" Orientation="Horizontal" Margin="12,0,0,0">
+                                    <CheckBox Content="Drop" 
+                                              Foreground="{DynamicResource ForegroundSecondaryBrush}"
+                                              IsChecked="{Binding RulesConfig.Throttle.Drop, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.Throttle.Enabled}"/>
+                                    <TextBlock Text="Chance" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
+                                               VerticalAlignment="Center" Margin="12,0,8,0"/>
+                                    <TextBox Style="{StaticResource CompactInputStyle}"
+                                             Text="{Binding RulesConfig.Throttle.Chance, UpdateSourceTrigger=PropertyChanged}"
+                                             IsEnabled="{Binding RulesConfig.Throttle.Enabled}"/>
+                                    <TextBlock Text="%" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
+                                               VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                </StackPanel>
+                            </Grid>
+                            <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right">
+                                <ToggleButton Content="↓" Style="{StaticResource DirectionArrowStyle}"
+                                              IsChecked="{Binding RulesConfig.Throttle.IsInbound, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.Throttle.Enabled}"/>
+                                <ToggleButton Content="↑" Style="{StaticResource DirectionArrowStyle}" Margin="4,0,0,0"
+                                              IsChecked="{Binding RulesConfig.Throttle.IsOutbound, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.Throttle.Enabled}"/>
                             </StackPanel>
-                        </Border>
-                        
-                        <StackPanel Grid.Row="5" Orientation="Horizontal">
-                            <TextBox Style="{StaticResource ParamInputStyle}" Width="70"
-                                     Text="{Binding RulesConfig.Throttle.Pps, UpdateSourceTrigger=PropertyChanged}"/>
-                            <TextBlock Text="pps" Foreground="{DynamicResource ForegroundSecondaryBrush}"
-                                       FontSize="{DynamicResource FontSizeS}" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
-                <!-- CARD: Bandwidth - BOUND -->
-                <Border Style="{StaticResource CardStyle}" Width="210" Margin="8">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="16"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="12"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        
-                        <Grid Grid.Row="0">
+                        </Grid>
+                    </Border>
+                    
+                    <!-- ROW: Bandwidth -->
+                    <Border Style="{StaticResource RuleRowStyle}">
+                        <Grid>
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColToggle"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColLabel"/>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColActions"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Bandwidth"
-                                       Foreground="{DynamicResource ForegroundPrimaryBrush}"
-                                       FontSize="{DynamicResource FontSizeL}"
-                                       FontWeight="Medium" VerticalAlignment="Center"/>
-                            <ToggleButton Grid.Column="1"
-                                          Style="{StaticResource ToggleSwitchStyle}"
+                            <ToggleButton Grid.Column="0" Style="{StaticResource CompactToggleSwitchStyle}"
                                           IsChecked="{Binding RulesConfig.Bandwidth.Enabled, Mode=TwoWay}"/>
-                        </Grid>
-                        
-                        <Border Grid.Row="1" Style="{StaticResource CategoryBadgeStyle}"
-                                Background="{DynamicResource DropBadgeBackgroundBrush}" Margin="0,6,0,0">
-                            <TextBlock Text="DROP" Foreground="{DynamicResource DropBadgeForegroundBrush}" FontSize="10" FontWeight="SemiBold"/>
-                        </Border>
-                        
-                        <Border Grid.Row="3" CornerRadius="4" 
-                                BorderBrush="{DynamicResource BorderBrush}" 
-                                BorderThickness="1" HorizontalAlignment="Left">
-                            <StackPanel Orientation="Horizontal">
-                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"
-                                              IsChecked="{Binding RulesConfig.Bandwidth.IsInbound, Mode=TwoWay}"/>
-                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"
-                                              IsChecked="{Binding RulesConfig.Bandwidth.IsOutbound, Mode=TwoWay}"/>
+                            <TextBlock Grid.Column="1" Text="Bandwidth" VerticalAlignment="Center" Margin="12,0,0,0" MinWidth="100"
+                                       Foreground="{DynamicResource ForegroundPrimaryBrush}" FontWeight="Medium"/>
+                            <Grid Grid.Column="2" VerticalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlLabel1"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlInput1"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlLabel2"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlInput2"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlUnit"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Limit" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
+                                           VerticalAlignment="Center" Margin="0,0,8,0" MinWidth="55"/>
+                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStyle}"
+                                         Text="{Binding RulesConfig.Bandwidth.Limit, UpdateSourceTrigger=PropertyChanged}"
+                                         IsEnabled="{Binding RulesConfig.Bandwidth.Enabled}"/>
+                                <ComboBox Grid.Column="3" Width="55" Margin="12,0,0,0"
+                                          SelectedIndex="{Binding RulesConfig.Bandwidth.Unit, Mode=TwoWay, Converter={StaticResource EnumToIntConverter}}"
+                                          IsEnabled="{Binding RulesConfig.Bandwidth.Enabled}">
+                                    <ComboBoxItem Content="KB"/>
+                                    <ComboBoxItem Content="MB"/>
+                                    <ComboBoxItem Content="GB"/>
+                                </ComboBox>
+                                <CheckBox Grid.Column="5" Content="Drop overflow" Margin="12,0,0,0"
+                                          Foreground="{DynamicResource ForegroundSecondaryBrush}"
+                                          IsChecked="{Binding RulesConfig.Bandwidth.DropOverflow, Mode=TwoWay}"
+                                          IsEnabled="{Binding RulesConfig.Bandwidth.Enabled}"/>
+                            </Grid>
+                            <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right">
+                                <ToggleButton Content="↓" Style="{StaticResource DirectionArrowStyle}"
+                                              IsChecked="{Binding RulesConfig.Bandwidth.IsInbound, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.Bandwidth.Enabled}"/>
+                                <ToggleButton Content="↑" Style="{StaticResource DirectionArrowStyle}" Margin="4,0,0,0"
+                                              IsChecked="{Binding RulesConfig.Bandwidth.IsOutbound, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.Bandwidth.Enabled}"/>
                             </StackPanel>
-                        </Border>
-                        
-                        <StackPanel Grid.Row="5" Orientation="Horizontal">
-                            <TextBox Style="{StaticResource ParamInputStyle}" Width="80"
-                                     Text="{Binding RulesConfig.Bandwidth.Bps, UpdateSourceTrigger=PropertyChanged}"/>
-                            <TextBlock Text="B/s" Foreground="{DynamicResource ForegroundSecondaryBrush}"
-                                       FontSize="{DynamicResource FontSizeS}" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
-                <!-- CARD: Loss Pattern - BOUND -->
-                <Border Style="{StaticResource CardStyle}" Width="210" Margin="8">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="16"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="12"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        
-                        <Grid Grid.Row="0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Loss Pattern"
-                                       Foreground="{DynamicResource ForegroundPrimaryBrush}"
-                                       FontSize="{DynamicResource FontSizeL}"
-                                       FontWeight="Medium" VerticalAlignment="Center"/>
-                            <ToggleButton Grid.Column="1"
-                                          Style="{StaticResource ToggleSwitchStyle}"
-                                          IsChecked="{Binding RulesConfig.LossPattern.Enabled, Mode=TwoWay}"/>
                         </Grid>
-                        
-                        <Border Grid.Row="1" Style="{StaticResource CategoryBadgeStyle}"
-                                Background="{DynamicResource DropBadgeBackgroundBrush}" Margin="0,6,0,0">
-                            <TextBlock Text="DROP" Foreground="{DynamicResource DropBadgeForegroundBrush}" FontSize="10" FontWeight="SemiBold"/>
-                        </Border>
-                        
-                        <Border Grid.Row="3" CornerRadius="4" 
-                                BorderBrush="{DynamicResource BorderBrush}" 
-                                BorderThickness="1" HorizontalAlignment="Left">
-                            <StackPanel Orientation="Horizontal">
-                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"
-                                              IsChecked="{Binding RulesConfig.LossPattern.IsInbound, Mode=TwoWay}"/>
-                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"
-                                              IsChecked="{Binding RulesConfig.LossPattern.IsOutbound, Mode=TwoWay}"/>
-                            </StackPanel>
-                        </Border>
-                        
-                        <StackPanel Grid.Row="5" Orientation="Horizontal">
-                            <TextBlock Text="Length" Foreground="{DynamicResource ForegroundMutedBrush}"
-                                       FontSize="{DynamicResource FontSizeS}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                            <TextBox Style="{StaticResource ParamInputStyle}" Width="40"
-                                     Text="{Binding RulesConfig.LossPattern.Length, UpdateSourceTrigger=PropertyChanged}"/>
-                            <TextBlock Text="bits" Foreground="{DynamicResource ForegroundSecondaryBrush}"
-                                       FontSize="{DynamicResource FontSizeS}" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
-                <!-- ═══════════════════════════════════════════════════════════════
-                     MODIFY RULES
-                     ═══════════════════════════════════════════════════════════════ -->
-
-                <!-- CARD: Duplicate - BOUND -->
-                <Border Style="{StaticResource CardStyle}" Width="210" Margin="8">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="16"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="12"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        
-                        <Grid Grid.Row="0">
+                    </Border>
+                    
+                    <!-- ROW: Duplicate -->
+                    <Border Style="{StaticResource RuleRowStyle}">
+                        <Grid>
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColToggle"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColLabel"/>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColActions"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Duplicate"
-                                       Foreground="{DynamicResource ForegroundPrimaryBrush}"
-                                       FontSize="{DynamicResource FontSizeL}"
-                                       FontWeight="Medium" VerticalAlignment="Center"/>
-                            <ToggleButton Grid.Column="1"
-                                          Style="{StaticResource ToggleSwitchStyle}"
+                            <ToggleButton Grid.Column="0" Style="{StaticResource CompactToggleSwitchStyle}"
                                           IsChecked="{Binding RulesConfig.Duplicate.Enabled, Mode=TwoWay}"/>
-                        </Grid>
-                        
-                        <Border Grid.Row="1" Style="{StaticResource CategoryBadgeStyle}"
-                                Background="{DynamicResource ModifyBadgeBackgroundBrush}" Margin="0,6,0,0">
-                            <TextBlock Text="MODIFY" Foreground="{DynamicResource ModifyBadgeForegroundBrush}" FontSize="10" FontWeight="SemiBold"/>
-                        </Border>
-                        
-                        <Border Grid.Row="3" CornerRadius="4" 
-                                BorderBrush="{DynamicResource BorderBrush}" 
-                                BorderThickness="1" HorizontalAlignment="Left">
-                            <StackPanel Orientation="Horizontal">
-                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"
-                                              IsChecked="{Binding RulesConfig.Duplicate.IsInbound, Mode=TwoWay}"/>
-                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"
-                                              IsChecked="{Binding RulesConfig.Duplicate.IsOutbound, Mode=TwoWay}"/>
+                            <TextBlock Grid.Column="1" Text="Duplicate" VerticalAlignment="Center" Margin="12,0,0,0" MinWidth="100"
+                                       Foreground="{DynamicResource ForegroundPrimaryBrush}" FontWeight="Medium"/>
+                            <Grid Grid.Column="2" VerticalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlLabel1"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlInput1"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlLabel2"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlInput2"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlUnit"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Count" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
+                                           VerticalAlignment="Center" Margin="0,0,8,0" MinWidth="55"/>
+                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStyle}"
+                                         Text="{Binding RulesConfig.Duplicate.Count, UpdateSourceTrigger=PropertyChanged}"
+                                         IsEnabled="{Binding RulesConfig.Duplicate.Enabled}"/>
+                                <TextBlock Grid.Column="2" Text="Chance" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
+                                           VerticalAlignment="Center" Margin="12,0,8,0" MinWidth="55"/>
+                                <TextBox Grid.Column="3" Style="{StaticResource CompactInputStyle}"
+                                         Text="{Binding RulesConfig.Duplicate.Chance, UpdateSourceTrigger=PropertyChanged}"
+                                         IsEnabled="{Binding RulesConfig.Duplicate.Enabled}"/>
+                                <TextBlock Grid.Column="4" Text="%" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
+                                           VerticalAlignment="Center" Margin="6,0,0,0" MinWidth="25"/>
+                            </Grid>
+                            <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right">
+                                <ToggleButton Content="↓" Style="{StaticResource DirectionArrowStyle}"
+                                              IsChecked="{Binding RulesConfig.Duplicate.IsInbound, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.Duplicate.Enabled}"/>
+                                <ToggleButton Content="↑" Style="{StaticResource DirectionArrowStyle}" Margin="4,0,0,0"
+                                              IsChecked="{Binding RulesConfig.Duplicate.IsOutbound, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.Duplicate.Enabled}"/>
                             </StackPanel>
-                        </Border>
-                        
-                        <StackPanel Grid.Row="5" Orientation="Horizontal">
-                            <TextBlock Text="Count" Foreground="{DynamicResource ForegroundMutedBrush}"
-                                       FontSize="{DynamicResource FontSizeS}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                            <TextBox Style="{StaticResource ParamInputStyle}" Width="50"
-                                     Text="{Binding RulesConfig.Duplicate.Count, UpdateSourceTrigger=PropertyChanged}"/>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
-                <!-- CARD: Tamper - BOUND -->
-                <Border Style="{StaticResource CardStyle}" Width="210" Margin="8">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="16"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="12"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        
-                        <Grid Grid.Row="0">
+                        </Grid>
+                    </Border>
+                    
+                    <!-- ROW: OutOfOrder -->
+                    <Border Style="{StaticResource RuleRowStyle}">
+                        <Grid>
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColToggle"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColLabel"/>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColActions"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Tamper"
-                                       Foreground="{DynamicResource ForegroundPrimaryBrush}"
-                                       FontSize="{DynamicResource FontSizeL}"
-                                       FontWeight="Medium" VerticalAlignment="Center"/>
-                            <ToggleButton Grid.Column="1"
-                                          Style="{StaticResource ToggleSwitchStyle}"
+                            <ToggleButton Grid.Column="0" Style="{StaticResource CompactToggleSwitchStyle}"
+                                          IsChecked="{Binding RulesConfig.OutOfOrder.Enabled, Mode=TwoWay}"/>
+                            <TextBlock Grid.Column="1" Text="OutOfOrder" VerticalAlignment="Center" Margin="12,0,0,0" MinWidth="100"
+                                       Foreground="{DynamicResource ForegroundPrimaryBrush}" FontWeight="Medium"/>
+                            <Grid Grid.Column="2" VerticalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlLabel1"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlInput1"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlLabel2"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlInput2"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlUnit"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Max Delay" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
+                                           VerticalAlignment="Center" Margin="0,0,8,0" MinWidth="55"/>
+                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStyle}"
+                                         Text="{Binding RulesConfig.OutOfOrder.MaxDelayMs, UpdateSourceTrigger=PropertyChanged}"
+                                         IsEnabled="{Binding RulesConfig.OutOfOrder.Enabled}"/>
+                                <TextBlock Grid.Column="4" Text="ms" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
+                                           VerticalAlignment="Center" Margin="6,0,0,0" MinWidth="25"/>
+                            </Grid>
+                            <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right">
+                                <ToggleButton Content="↓" Style="{StaticResource DirectionArrowStyle}"
+                                              IsChecked="{Binding RulesConfig.OutOfOrder.IsInbound, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.OutOfOrder.Enabled}"/>
+                                <ToggleButton Content="↑" Style="{StaticResource DirectionArrowStyle}" Margin="4,0,0,0"
+                                              IsChecked="{Binding RulesConfig.OutOfOrder.IsOutbound, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.OutOfOrder.Enabled}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                    
+                    <!-- ROW: Burst -->
+                    <Border Style="{StaticResource RuleRowStyle}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColToggle"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColLabel"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColActions"/>
+                            </Grid.ColumnDefinitions>
+                            <ToggleButton Grid.Column="0" Style="{StaticResource CompactToggleSwitchStyle}"
+                                          IsChecked="{Binding RulesConfig.Burst.Enabled, Mode=TwoWay}"/>
+                            <TextBlock Grid.Column="1" Text="Burst" VerticalAlignment="Center" Margin="12,0,0,0" MinWidth="100"
+                                       Foreground="{DynamicResource ForegroundPrimaryBrush}" FontWeight="Medium"/>
+                            <Grid Grid.Column="2" VerticalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlLabel1"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlInput1"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlLabel2"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlInput2"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlUnit"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Interval" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
+                                           VerticalAlignment="Center" Margin="0,0,8,0" MinWidth="55"/>
+                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStyle}"
+                                         Text="{Binding RulesConfig.Burst.IntervalMs, UpdateSourceTrigger=PropertyChanged}"
+                                         IsEnabled="{Binding RulesConfig.Burst.Enabled}"/>
+                                <TextBlock Grid.Column="4" Text="ms" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
+                                           VerticalAlignment="Center" Margin="6,0,0,0" MinWidth="25"/>
+                            </Grid>
+                            <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right">
+                                <ToggleButton Content="↓" Style="{StaticResource DirectionArrowStyle}"
+                                              IsChecked="{Binding RulesConfig.Burst.IsInbound, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.Burst.Enabled}"/>
+                                <ToggleButton Content="↑" Style="{StaticResource DirectionArrowStyle}" Margin="4,0,0,0"
+                                              IsChecked="{Binding RulesConfig.Burst.IsOutbound, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.Burst.Enabled}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                    
+                    <!-- ROW: AckDelay -->
+                    <Border Style="{StaticResource RuleRowStyle}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColToggle"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColLabel"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColActions"/>
+                            </Grid.ColumnDefinitions>
+                            <ToggleButton Grid.Column="0" Style="{StaticResource CompactToggleSwitchStyle}"
+                                          IsChecked="{Binding RulesConfig.AckDelay.Enabled, Mode=TwoWay}"/>
+                            <TextBlock Grid.Column="1" Text="AckDelay" VerticalAlignment="Center" Margin="12,0,0,0" MinWidth="100"
+                                       Foreground="{DynamicResource ForegroundPrimaryBrush}" FontWeight="Medium"/>
+                            <Grid Grid.Column="2" VerticalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlLabel1"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlInput1"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlLabel2"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlInput2"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlUnit"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Delay" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
+                                           VerticalAlignment="Center" Margin="0,0,8,0" MinWidth="55"/>
+                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStyle}"
+                                         Text="{Binding RulesConfig.AckDelay.DelayMs, UpdateSourceTrigger=PropertyChanged}"
+                                         IsEnabled="{Binding RulesConfig.AckDelay.Enabled}"/>
+                                <TextBlock Grid.Column="4" Text="ms" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
+                                           VerticalAlignment="Center" Margin="6,0,0,0" MinWidth="25"/>
+                            </Grid>
+                            <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right">
+                                <ToggleButton Content="↓" Style="{StaticResource DirectionArrowStyle}"
+                                              IsChecked="{Binding RulesConfig.AckDelay.IsInbound, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.AckDelay.Enabled}"/>
+                                <ToggleButton Content="↑" Style="{StaticResource DirectionArrowStyle}" Margin="4,0,0,0"
+                                              IsChecked="{Binding RulesConfig.AckDelay.IsOutbound, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.AckDelay.Enabled}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                    
+                    <!-- ROW: LossPattern -->
+                    <Border Style="{StaticResource RuleRowStyle}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColToggle"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColLabel"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColActions"/>
+                            </Grid.ColumnDefinitions>
+                            <ToggleButton Grid.Column="0" Style="{StaticResource CompactToggleSwitchStyle}"
+                                          IsChecked="{Binding RulesConfig.LossPattern.Enabled, Mode=TwoWay}"/>
+                            <TextBlock Grid.Column="1" Text="LossPattern" VerticalAlignment="Center" Margin="12,0,0,0" MinWidth="100"
+                                       Foreground="{DynamicResource ForegroundPrimaryBrush}" FontWeight="Medium"/>
+                            <Grid Grid.Column="2" VerticalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlLabel1"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlInput1"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlLabel2"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlInput2"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlUnit"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Pattern" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
+                                           VerticalAlignment="Center" Margin="0,0,8,0" MinWidth="55"/>
+                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStyle}" Width="55"
+                                         Text="{Binding RulesConfig.LossPattern.PatternHex, UpdateSourceTrigger=PropertyChanged}"
+                                         IsEnabled="{Binding RulesConfig.LossPattern.Enabled}"/>
+                                <TextBlock Grid.Column="2" Text="Length" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
+                                           VerticalAlignment="Center" Margin="12,0,8,0" MinWidth="55"/>
+                                <TextBox Grid.Column="3" Style="{StaticResource CompactInputStyle}"
+                                         Text="{Binding RulesConfig.LossPattern.Length, UpdateSourceTrigger=PropertyChanged}"
+                                         IsEnabled="{Binding RulesConfig.LossPattern.Enabled}"/>
+                            </Grid>
+                            <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right">
+                                <ToggleButton Content="↓" Style="{StaticResource DirectionArrowStyle}"
+                                              IsChecked="{Binding RulesConfig.LossPattern.IsInbound, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.LossPattern.Enabled}"/>
+                                <ToggleButton Content="↑" Style="{StaticResource DirectionArrowStyle}" Margin="4,0,0,0"
+                                              IsChecked="{Binding RulesConfig.LossPattern.IsOutbound, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.LossPattern.Enabled}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                    
+                    <!-- ROW: Tamper -->
+                    <Border Style="{StaticResource RuleRowStyle}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColToggle"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColLabel"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColActions"/>
+                            </Grid.ColumnDefinitions>
+                            <ToggleButton Grid.Column="0" Style="{StaticResource CompactToggleSwitchStyle}"
                                           IsChecked="{Binding RulesConfig.Tamper.Enabled, Mode=TwoWay}"/>
-                        </Grid>
-                        
-                        <Border Grid.Row="1" Style="{StaticResource CategoryBadgeStyle}"
-                                Background="{DynamicResource ModifyBadgeBackgroundBrush}" Margin="0,6,0,0">
-                            <TextBlock Text="MODIFY" Foreground="{DynamicResource ModifyBadgeForegroundBrush}" FontSize="10" FontWeight="SemiBold"/>
-                        </Border>
-                        
-                        <Border Grid.Row="3" CornerRadius="4" 
-                                BorderBrush="{DynamicResource BorderBrush}" 
-                                BorderThickness="1" HorizontalAlignment="Left">
-                            <StackPanel Orientation="Horizontal">
-                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"
-                                              IsChecked="{Binding RulesConfig.Tamper.IsInbound, Mode=TwoWay}"/>
-                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"
-                                              IsChecked="{Binding RulesConfig.Tamper.IsOutbound, Mode=TwoWay}"/>
+                            <TextBlock Grid.Column="1" Text="Tamper" VerticalAlignment="Center" Margin="12,0,0,0" MinWidth="100"
+                                       Foreground="{DynamicResource ForegroundPrimaryBrush}" FontWeight="Medium"/>
+                            <Grid Grid.Column="2" VerticalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlLabel1"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlInput1"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlLabel2"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlInput2"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlUnit"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Chance" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
+                                           VerticalAlignment="Center" Margin="0,0,8,0" MinWidth="55"/>
+                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStyle}"
+                                         Text="{Binding RulesConfig.Tamper.Chance, UpdateSourceTrigger=PropertyChanged}"
+                                         IsEnabled="{Binding RulesConfig.Tamper.Enabled}"/>
+                                <TextBlock Grid.Column="4" Text="%" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
+                                           VerticalAlignment="Center" Margin="6,0,0,0" MinWidth="25"/>
+                                <StackPanel Grid.Column="5" Orientation="Horizontal" Margin="12,0,0,0">
+                                    <CheckBox Content="Corrupt"
+                                              Foreground="{DynamicResource ForegroundSecondaryBrush}"
+                                              IsChecked="{Binding RulesConfig.Tamper.Corrupt, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.Tamper.Enabled}"/>
+                                    <CheckBox Content="Truncate" Margin="8,0,0,0"
+                                              Foreground="{DynamicResource ForegroundSecondaryBrush}"
+                                              IsChecked="{Binding RulesConfig.Tamper.Truncate, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.Tamper.Enabled}"/>
+                                    <CheckBox Content="Rewrite" Margin="8,0,0,0"
+                                              Foreground="{DynamicResource ForegroundSecondaryBrush}"
+                                              IsChecked="{Binding RulesConfig.Tamper.Rewrite, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.Tamper.Enabled}"/>
+                                    <CheckBox Content="Checksum" Margin="8,0,0,0"
+                                              Foreground="{DynamicResource ForegroundSecondaryBrush}"
+                                              IsChecked="{Binding RulesConfig.Tamper.ChecksumCorrupt, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.Tamper.Enabled}"/>
+                                </StackPanel>
+                            </Grid>
+                            <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right">
+                                <ToggleButton Content="↓" Style="{StaticResource DirectionArrowStyle}"
+                                              IsChecked="{Binding RulesConfig.Tamper.IsInbound, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.Tamper.Enabled}"/>
+                                <ToggleButton Content="↑" Style="{StaticResource DirectionArrowStyle}" Margin="4,0,0,0"
+                                              IsChecked="{Binding RulesConfig.Tamper.IsOutbound, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.Tamper.Enabled}"/>
                             </StackPanel>
-                        </Border>
-                        
-                        <StackPanel Grid.Row="5" Orientation="Horizontal">
-                            <CheckBox Content="Trunc" Foreground="{DynamicResource ForegroundSecondaryBrush}"
-                                      FontSize="{DynamicResource FontSizeXS}" Margin="0,0,8,0"
-                                      IsChecked="{Binding RulesConfig.Tamper.Truncate, Mode=TwoWay}"/>
-                            <CheckBox Content="Corrupt" Foreground="{DynamicResource ForegroundSecondaryBrush}"
-                                      FontSize="{DynamicResource FontSizeXS}" Margin="0,0,8,0"
-                                      IsChecked="{Binding RulesConfig.Tamper.Corrupt, Mode=TwoWay}"/>
-                            <CheckBox Content="Rewrite" Foreground="{DynamicResource ForegroundSecondaryBrush}"
-                                      FontSize="{DynamicResource FontSizeXS}"
-                                      IsChecked="{Binding RulesConfig.Tamper.Rewrite, Mode=TwoWay}"/>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
-                <!-- CARD: MTU Clamp - BOUND -->
-                <Border Style="{StaticResource CardStyle}" Width="210" Margin="8">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="16"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="12"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        
-                        <Grid Grid.Row="0">
+                        </Grid>
+                    </Border>
+                    
+                    <!-- ROW: MtuClamp -->
+                    <Border Style="{StaticResource RuleRowStyle}">
+                        <Grid>
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColToggle"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColLabel"/>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColActions"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="MTU Clamp"
-                                       Foreground="{DynamicResource ForegroundPrimaryBrush}"
-                                       FontSize="{DynamicResource FontSizeL}"
-                                       FontWeight="Medium" VerticalAlignment="Center"/>
-                            <ToggleButton Grid.Column="1"
-                                          Style="{StaticResource ToggleSwitchStyle}"
+                            <ToggleButton Grid.Column="0" Style="{StaticResource CompactToggleSwitchStyle}"
                                           IsChecked="{Binding RulesConfig.MtuClamp.Enabled, Mode=TwoWay}"/>
-                        </Grid>
-                        
-                        <Border Grid.Row="1" Style="{StaticResource CategoryBadgeStyle}"
-                                Background="{DynamicResource ModifyBadgeBackgroundBrush}" Margin="0,6,0,0">
-                            <TextBlock Text="MODIFY" Foreground="{DynamicResource ModifyBadgeForegroundBrush}" FontSize="10" FontWeight="SemiBold"/>
-                        </Border>
-                        
-                        <Border Grid.Row="3" CornerRadius="4" 
-                                BorderBrush="{DynamicResource BorderBrush}" 
-                                BorderThickness="1" HorizontalAlignment="Left">
-                            <StackPanel Orientation="Horizontal">
-                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"
-                                              IsChecked="{Binding RulesConfig.MtuClamp.IsInbound, Mode=TwoWay}"/>
-                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"
-                                              IsChecked="{Binding RulesConfig.MtuClamp.IsOutbound, Mode=TwoWay}"/>
+                            <TextBlock Grid.Column="1" Text="MtuClamp" VerticalAlignment="Center" Margin="12,0,0,0" MinWidth="100"
+                                       Foreground="{DynamicResource ForegroundPrimaryBrush}" FontWeight="Medium"/>
+                            <Grid Grid.Column="2" VerticalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlLabel1"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlInput1"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlLabel2"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlInput2"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlUnit"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="MTU max" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
+                                           VerticalAlignment="Center" Margin="0,0,8,0" MinWidth="55"/>
+                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStyle}" Width="55"
+                                         Text="{Binding RulesConfig.MtuClamp.MaxSize, UpdateSourceTrigger=PropertyChanged}"
+                                         IsEnabled="{Binding RulesConfig.MtuClamp.Enabled}"/>
+                            </Grid>
+                            <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right">
+                                <ToggleButton Content="↓" Style="{StaticResource DirectionArrowStyle}"
+                                              IsChecked="{Binding RulesConfig.MtuClamp.IsInbound, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.MtuClamp.Enabled}"/>
+                                <ToggleButton Content="↑" Style="{StaticResource DirectionArrowStyle}" Margin="4,0,0,0"
+                                              IsChecked="{Binding RulesConfig.MtuClamp.IsOutbound, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.MtuClamp.Enabled}"/>
                             </StackPanel>
-                        </Border>
-                        
-                        <StackPanel Grid.Row="5" Orientation="Horizontal">
-                            <TextBlock Text="Max" Foreground="{DynamicResource ForegroundMutedBrush}"
-                                       FontSize="{DynamicResource FontSizeS}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                            <TextBox Style="{StaticResource ParamInputStyle}" Width="70"
-                                     Text="{Binding RulesConfig.MtuClamp.MaxSize, UpdateSourceTrigger=PropertyChanged}"/>
-                            <TextBlock Text="bytes" Foreground="{DynamicResource ForegroundSecondaryBrush}"
-                                       FontSize="{DynamicResource FontSizeS}" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
-                <!-- CARD: Window Clamp - BOUND -->
-                <Border Style="{StaticResource CardStyle}" Width="210" Margin="8">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="16"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="12"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        
-                        <Grid Grid.Row="0">
+                        </Grid>
+                    </Border>
+                    
+                    <!-- ROW: WindowClamp -->
+                    <Border Style="{StaticResource RuleRowStyle}">
+                        <Grid>
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColToggle"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColLabel"/>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColActions"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Window Clamp"
-                                       Foreground="{DynamicResource ForegroundPrimaryBrush}"
-                                       FontSize="{DynamicResource FontSizeL}"
-                                       FontWeight="Medium" VerticalAlignment="Center"/>
-                            <ToggleButton Grid.Column="1"
-                                          Style="{StaticResource ToggleSwitchStyle}"
+                            <ToggleButton Grid.Column="0" Style="{StaticResource CompactToggleSwitchStyle}"
                                           IsChecked="{Binding RulesConfig.WindowClamp.Enabled, Mode=TwoWay}"/>
-                        </Grid>
-                        
-                        <Border Grid.Row="1" Style="{StaticResource CategoryBadgeStyle}"
-                                Background="{DynamicResource ModifyBadgeBackgroundBrush}" Margin="0,6,0,0">
-                            <TextBlock Text="MODIFY" Foreground="{DynamicResource ModifyBadgeForegroundBrush}" FontSize="10" FontWeight="SemiBold"/>
-                        </Border>
-                        
-                        <Border Grid.Row="3" CornerRadius="4" 
-                                BorderBrush="{DynamicResource BorderBrush}" 
-                                BorderThickness="1" HorizontalAlignment="Left">
-                            <StackPanel Orientation="Horizontal">
-                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"
-                                              IsChecked="{Binding RulesConfig.WindowClamp.IsInbound, Mode=TwoWay}"/>
-                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"
-                                              IsChecked="{Binding RulesConfig.WindowClamp.IsOutbound, Mode=TwoWay}"/>
+                            <TextBlock Grid.Column="1" Text="WindowClamp" VerticalAlignment="Center" Margin="12,0,0,0" MinWidth="100"
+                                       Foreground="{DynamicResource ForegroundPrimaryBrush}" FontWeight="Medium"/>
+                            <Grid Grid.Column="2" VerticalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlLabel1"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlInput1"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlLabel2"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlInput2"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlUnit"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Window max" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
+                                           VerticalAlignment="Center" Margin="0,0,8,0" MinWidth="55"/>
+                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStyle}" Width="65"
+                                         Text="{Binding RulesConfig.WindowClamp.MaxWindow, UpdateSourceTrigger=PropertyChanged}"
+                                         IsEnabled="{Binding RulesConfig.WindowClamp.Enabled}"/>
+                            </Grid>
+                            <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right">
+                                <ToggleButton Content="↓" Style="{StaticResource DirectionArrowStyle}"
+                                              IsChecked="{Binding RulesConfig.WindowClamp.IsInbound, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.WindowClamp.Enabled}"/>
+                                <ToggleButton Content="↑" Style="{StaticResource DirectionArrowStyle}" Margin="4,0,0,0"
+                                              IsChecked="{Binding RulesConfig.WindowClamp.IsOutbound, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.WindowClamp.Enabled}"/>
                             </StackPanel>
-                        </Border>
-                        
-                        <StackPanel Grid.Row="5" Orientation="Horizontal">
-                            <TextBlock Text="Max" Foreground="{DynamicResource ForegroundMutedBrush}"
-                                       FontSize="{DynamicResource FontSizeS}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                            <TextBox Style="{StaticResource ParamInputStyle}" Width="70"
-                                     Text="{Binding RulesConfig.WindowClamp.MaxWindow, UpdateSourceTrigger=PropertyChanged}"/>
-                            <TextBlock Text="bytes" Foreground="{DynamicResource ForegroundSecondaryBrush}"
-                                       FontSize="{DynamicResource FontSizeS}" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
-                <!-- ═══════════════════════════════════════════════════════════════
-                     INJECT RULES
-                     ═══════════════════════════════════════════════════════════════ -->
-
-                <!-- CARD: TCP RST - BOUND -->
-                <Border Style="{StaticResource CardStyle}" Width="210" Margin="8">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="16"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="12"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        
-                        <Grid Grid.Row="0">
+                        </Grid>
+                    </Border>
+                    
+                    <!-- ROW: TcpRst -->
+                    <Border Style="{StaticResource RuleRowStyle}">
+                        <Grid>
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColToggle"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColLabel"/>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColActions"/>
                             </Grid.ColumnDefinitions>
-                            <StackPanel>
-                                <TextBlock Text="TCP RST"
-                                           Foreground="{DynamicResource ForegroundPrimaryBrush}"
-                                           FontSize="{DynamicResource FontSizeL}"
-                                           FontWeight="Medium"/>
-                                <TextBlock Text="(experimental)"
-                                           Foreground="{DynamicResource WarningBrush}"
-                                           FontSize="{DynamicResource FontSizeXS}"
-                                           Margin="0,-2,0,0"/>
-                            </StackPanel>
-                            <ToggleButton Grid.Column="1"
-                                          Style="{StaticResource ToggleSwitchStyle}"
-                                          VerticalAlignment="Top"
+                            <ToggleButton Grid.Column="0" Style="{StaticResource CompactToggleSwitchStyle}"
                                           IsChecked="{Binding RulesConfig.TcpRst.Enabled, Mode=TwoWay}"/>
-                        </Grid>
-                        
-                        <Border Grid.Row="1" Style="{StaticResource CategoryBadgeStyle}"
-                                Background="{DynamicResource InjectBadgeBackgroundBrush}" Margin="0,6,0,0">
-                            <TextBlock Text="INJECT" Foreground="{DynamicResource InjectBadgeForegroundBrush}" FontSize="10" FontWeight="SemiBold"/>
-                        </Border>
-                        
-                        <Border Grid.Row="3" CornerRadius="4" 
-                                BorderBrush="{DynamicResource BorderBrush}" 
-                                BorderThickness="1" HorizontalAlignment="Left">
-                            <StackPanel Orientation="Horizontal">
-                                <ToggleButton Content="In" Style="{StaticResource DirectionToggleStyle}"
-                                              IsChecked="{Binding RulesConfig.TcpRst.IsInbound, Mode=TwoWay}"/>
-                                <ToggleButton Content="Out" Style="{StaticResource DirectionToggleStyle}"
-                                              IsChecked="{Binding RulesConfig.TcpRst.IsOutbound, Mode=TwoWay}"/>
+                            <TextBlock Grid.Column="1" Text="TcpRst" VerticalAlignment="Center" Margin="12,0,0,0" MinWidth="100"
+                                       Foreground="{DynamicResource ForegroundPrimaryBrush}" FontWeight="Medium"/>
+                            <Grid Grid.Column="2" VerticalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlLabel1"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlInput1"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlLabel2"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlInput2"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlUnit"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Button Grid.Column="0" Content="⚡ RST next packet"
+                                        Command="{Binding RulesConfig.TcpRst.TriggerRstCommand}"
+                                        IsEnabled="{Binding RulesConfig.TcpRst.Enabled}"
+                                        Padding="8,4"
+                                        Background="{DynamicResource BackgroundLevel2Brush}"
+                                        Foreground="{DynamicResource ForegroundSecondaryBrush}"
+                                        BorderBrush="{DynamicResource BorderSubtleBrush}"
+                                        BorderThickness="1">
+                                    <Button.Style>
+                                        <Style TargetType="Button">
+                                            <Setter Property="Cursor" Value="Hand"/>
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border x:Name="Bd" 
+                                                                Background="{TemplateBinding Background}"
+                                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                                CornerRadius="4"
+                                                                Padding="{TemplateBinding Padding}">
+                                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AccentBrush}"/>
+                                                                <Setter Property="Foreground" Value="White"/>
+                                                            </Trigger>
+                                                            <Trigger Property="IsPressed" Value="True">
+                                                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SuccessBrush}"/>
+                                                                <Setter Property="Foreground" Value="White"/>
+                                                            </Trigger>
+                                                            <Trigger Property="IsEnabled" Value="False">
+                                                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource BackgroundLevel1Brush}"/>
+                                                                <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}"/>
+                                                            </Trigger>
+                                                            <DataTrigger Binding="{Binding RulesConfig.TcpRst.RstTriggered}" Value="True">
+                                                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SuccessBrush}"/>
+                                                                <Setter Property="Foreground" Value="White"/>
+                                                            </DataTrigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                                <TextBlock Grid.Column="2" Text="Chance" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
+                                           VerticalAlignment="Center" Margin="12,0,8,0" MinWidth="55"/>
+                                <TextBox Grid.Column="3" Style="{StaticResource CompactInputStyle}"
+                                         Text="{Binding RulesConfig.TcpRst.Chance, UpdateSourceTrigger=PropertyChanged}"
+                                         IsEnabled="{Binding RulesConfig.TcpRst.Enabled}"/>
+                                <TextBlock Grid.Column="4" Text="%" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
+                                           VerticalAlignment="Center" Margin="6,0,0,0" MinWidth="25"/>
+                            </Grid>
+                            <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right">
+                                <ToggleButton Content="↓" Style="{StaticResource DirectionArrowStyle}"
+                                              IsChecked="{Binding RulesConfig.TcpRst.IsInbound, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.TcpRst.Enabled}"/>
+                                <ToggleButton Content="↑" Style="{StaticResource DirectionArrowStyle}" Margin="4,0,0,0"
+                                              IsChecked="{Binding RulesConfig.TcpRst.IsOutbound, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.TcpRst.Enabled}"/>
                             </StackPanel>
-                        </Border>
-                        
-                        <CheckBox Grid.Row="5" Content="One-shot" 
-                                  Foreground="{DynamicResource ForegroundSecondaryBrush}"
-                                  FontSize="{DynamicResource FontSizeS}"
-                                  IsChecked="{Binding RulesConfig.TcpRst.OneShot, Mode=TwoWay}"/>
-                    </Grid>
-                </Border>
-
-            </WrapPanel>
+                        </Grid>
+                    </Border>
+                    
+                    <!-- ROW: Blackhole -->
+                    <Border Style="{StaticResource RuleRowStyle}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColToggle"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColLabel"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColActions"/>
+                            </Grid.ColumnDefinitions>
+                            <ToggleButton Grid.Column="0" Style="{StaticResource CompactToggleSwitchStyle}"
+                                          IsChecked="{Binding RulesConfig.Blackhole.Enabled, Mode=TwoWay}"/>
+                            <TextBlock Grid.Column="1" Text="Blackhole" VerticalAlignment="Center" Margin="12,0,0,0" MinWidth="100"
+                                       Foreground="{DynamicResource ForegroundPrimaryBrush}" FontWeight="Medium"/>
+                            <TextBlock Grid.Column="2" Text="—" Foreground="{DynamicResource ForegroundMutedBrush}" 
+                                       VerticalAlignment="Center"/>
+                            <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right">
+                                <ToggleButton Content="↓" Style="{StaticResource DirectionArrowStyle}"
+                                              IsChecked="{Binding RulesConfig.Blackhole.IsInbound, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.Blackhole.Enabled}"/>
+                                <ToggleButton Content="↑" Style="{StaticResource DirectionArrowStyle}" Margin="4,0,0,0"
+                                              IsChecked="{Binding RulesConfig.Blackhole.IsOutbound, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.Blackhole.Enabled}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                    
+                    <!-- ROW: SynDrop -->
+                    <Border Style="{StaticResource RuleRowStyle}" BorderThickness="0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColToggle"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColLabel"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColActions"/>
+                            </Grid.ColumnDefinitions>
+                            <ToggleButton Grid.Column="0" Style="{StaticResource CompactToggleSwitchStyle}"
+                                          IsChecked="{Binding RulesConfig.SynDrop.Enabled, Mode=TwoWay}"/>
+                            <TextBlock Grid.Column="1" Text="SynDrop" VerticalAlignment="Center" Margin="12,0,0,0" MinWidth="100"
+                                       Foreground="{DynamicResource ForegroundPrimaryBrush}" FontWeight="Medium"/>
+                            <Grid Grid.Column="2" VerticalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlLabel1"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlInput1"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlLabel2"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlInput2"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="CtrlUnit"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Chance" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
+                                           VerticalAlignment="Center" Margin="0,0,8,0" MinWidth="55"/>
+                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStyle}"
+                                         Text="{Binding RulesConfig.SynDrop.Chance, UpdateSourceTrigger=PropertyChanged}"
+                                         IsEnabled="{Binding RulesConfig.SynDrop.Enabled}"/>
+                                <TextBlock Grid.Column="4" Text="%" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
+                                           VerticalAlignment="Center" Margin="6,0,0,0" MinWidth="25"/>
+                            </Grid>
+                            <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right">
+                                <ToggleButton Content="↓" Style="{StaticResource DirectionArrowStyle}"
+                                              IsChecked="{Binding RulesConfig.SynDrop.IsInbound, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.SynDrop.Enabled}"/>
+                                <ToggleButton Content="↑" Style="{StaticResource DirectionArrowStyle}" Margin="4,0,0,0"
+                                              IsChecked="{Binding RulesConfig.SynDrop.IsOutbound, Mode=TwoWay}"
+                                              IsEnabled="{Binding RulesConfig.SynDrop.Enabled}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                    
+                </StackPanel>
+            </Border>
         </ScrollViewer>
     </Grid>
 </Window>

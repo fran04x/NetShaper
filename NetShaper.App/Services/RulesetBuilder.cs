@@ -68,7 +68,7 @@ namespace NetShaper.App.Services
             if (config.Bandwidth.Enabled)
                 AddRule(
                     BandwidthRule.Create(),
-                    BandwidthRule.CreateState(config.Bandwidth.Bps),
+                    BandwidthRule.CreateState((int)config.Bandwidth.Bps),
                     ref caps,
                     RuleCapability.HasDropRules);
 
@@ -153,7 +153,7 @@ namespace NetShaper.App.Services
             if (config.TcpRst.Enabled)
                 AddRule(
                     TcpRstRule.Create(),
-                    TcpRstRule.CreateState(config.TcpRst.OneShot),
+                    TcpRstRule.CreateState(config.TcpRst.RstTriggered),
                     ref caps,
                     RuleCapability.HasInjectRules);
 

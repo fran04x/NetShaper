@@ -42,6 +42,18 @@
     <Color x:Key="InjectBadgeBackgroundColor">#3D2035</Color>
     <Color x:Key="InjectBadgeForegroundColor">#F291C3</Color>
 
+    <!-- Disabled card colors (sunken/darker for dark theme) -->
+    <Color x:Key="CardDisabledBackgroundColor">#1E1F22</Color>
+    <Color x:Key="CardDisabledBadgeBackgroundColor">#2B2D31</Color>
+    <Color x:Key="CardDisabledBadgeForegroundColor">#6B7280</Color>
+    <Color x:Key="DirectionArrowInactiveColor">#6B7280</Color>
+    
+    <!-- Direction button colors -->
+    <Color x:Key="DirectionButtonBackgroundColor">#3F4147</Color>
+    <Color x:Key="DirectionButtonBorderColor">#4F545C</Color>
+    <Color x:Key="DirectionButtonDisabledBackgroundColor">#2B2D31</Color>
+    <Color x:Key="DirectionButtonDisabledBorderColor">#35363C</Color>
+
     <!-- ══════════════════════════════════════════════════════════════════════════
          BRUSHES
          ══════════════════════════════════════════════════════════════════════════ -->
@@ -71,5 +83,17 @@
     <SolidColorBrush x:Key="ModifyBadgeForegroundBrush" Color="#A4ADF7"/>
     <SolidColorBrush x:Key="InjectBadgeBackgroundBrush" Color="#3D2035"/>
     <SolidColorBrush x:Key="InjectBadgeForegroundBrush" Color="#F291C3"/>
+
+    <!-- Disabled card brushes -->
+    <SolidColorBrush x:Key="CardDisabledBackgroundBrush" Color="#1E1F22"/>
+    <SolidColorBrush x:Key="CardDisabledBadgeBackgroundBrush" Color="#2B2D31"/>
+    <SolidColorBrush x:Key="CardDisabledBadgeForegroundBrush" Color="#6B7280"/>
+    <SolidColorBrush x:Key="DirectionArrowInactiveBrush" Color="#6B7280"/>
+    
+    <!-- Direction button brushes -->
+    <SolidColorBrush x:Key="DirectionButtonBackgroundBrush" Color="#3F4147"/>
+    <SolidColorBrush x:Key="DirectionButtonBorderBrush" Color="#4F545C"/>
+    <SolidColorBrush x:Key="DirectionButtonDisabledBackgroundBrush" Color="#2B2D31"/>
+    <SolidColorBrush x:Key="DirectionButtonDisabledBorderBrush" Color="#35363C"/>
 
 </ResourceDictionary>

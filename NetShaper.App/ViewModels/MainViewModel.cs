@@ -22,7 +22,7 @@ namespace NetShaper.App.ViewModels
         private RulesConfig _rulesConfig = new();
         private bool _isRunning;
         private bool _isDarkTheme;
-        private string _filterText = "";
+        private string _filterText = "ip and (tcp or udp)";
 
         /// <summary>
         /// Parameterless constructor for design-time and standalone usage.
@@ -120,7 +120,7 @@ namespace NetShaper.App.ViewModels
                 : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(30, 31, 34));   // Dark color
 
         /// <summary>
-        /// Filter text for searching rules.
+        /// Filter text for WinDivert packet capture.
         /// </summary>
         public string FilterText
         {
@@ -131,9 +131,132 @@ namespace NetShaper.App.ViewModels
                 {
                     _filterText = value;
                     OnPropertyChanged();
+                    OnPropertyChanged(nameof(IsFilterValid));
                 }
             }
         }
+
+        /// <summary>
+        /// True if FilterText has valid syntax (balanced parentheses, non-empty).
+        /// </summary>
+        public bool IsFilterValid => ValidateFilterSyntax(FilterText);
+
+        /// <summary>
+        /// Valid WinDivert filter keywords.
+        /// </summary>
+        private static readonly System.Collections.Generic.HashSet<string> ValidKeywords = new(System.StringComparer.OrdinalIgnoreCase)
+        {
+            // Boolean literals
+            "true", "false",
+            
+            // Logical operators
+            "and", "or", "not",
+            
+            // Protocol flags (boolean keywords)
+            "ip", "ipv6", "icmp", "icmpv6", "tcp", "udp",
+            
+            // Packet flags
+            "inbound", "outbound", "loopback", "impostor", "fragment", "reassembled",
+            
+            // IP fields
+            "ip.HdrLength", "ip.TOS", "ip.Length", "ip.Id", "ip.DF", "ip.MF",
+            "ip.FragOff", "ip.TTL", "ip.Protocol", "ip.Checksum",
+            "ip.SrcAddr", "ip.DstAddr",
+            
+            // IPv6 fields
+            "ipv6.TrafficClass", "ipv6.FlowLabel", "ipv6.Length", "ipv6.NextHdr", "ipv6.HopLimit",
+            "ipv6.SrcAddr", "ipv6.DstAddr",
+            
+            // ICMP fields
+            "icmp.Type", "icmp.Code", "icmp.Checksum", "icmp.Body",
+            "icmpv6.Type", "icmpv6.Code", "icmpv6.Checksum", "icmpv6.Body",
+            
+            // TCP fields
+            "tcp.SrcPort", "tcp.DstPort", "tcp.SeqNum", "tcp.AckNum",
+            "tcp.HdrLength", "tcp.Urg", "tcp.Ack", "tcp.Psh", "tcp.Rst", "tcp.Syn", "tcp.Fin",
+            "tcp.Window", "tcp.Checksum", "tcp.UrgPtr", "tcp.PayloadLength",
+            
+            // UDP fields
+            "udp.SrcPort", "udp.DstPort", "udp.Length", "udp.Checksum", "udp.PayloadLength",
+            
+            // Address flags
+            "localAddr", "remoteAddr", "localPort", "remotePort",
+            
+            // Interface
+            "ifIdx", "subIfIdx",
+            
+            // Event (for FLOW/SOCKET layers)
+            "event", "layer", "priority", "processId"
+        };
+
+        /// <summary>
+        /// Valid WinDivert comparison operators.
+        /// </summary>
+        private static readonly string[] ValidOperators = { "==", "!=", "<=", ">=", "<", ">" };
+
+        private static bool ValidateFilterSyntax(string filter)
+        {
+            if (string.IsNullOrWhiteSpace(filter))
+                return false;
+            
+            // Check balanced parentheses
+            int depth = 0;
+            foreach (char c in filter)
+            {
+                if (c == '(') depth++;
+                else if (c == ')') depth--;
+                if (depth < 0) return false;
+            }
+            if (depth != 0) return false;
+            
+            // Tokenize and validate keywords
+            var tokens = filter
+                .Replace("(", " ")
+                .Replace(")", " ")
+                .Replace("==", " == ")
+                .Replace("!=", " != ")
+                .Replace("<=", " <= ")
+                .Replace(">=", " >= ")
+                .Replace("&&", " and ")
+                .Replace("||", " or ")
+                .Replace("!", " not ")
+                .Split(new[] { ' ' }, System.StringSplitOptions.RemoveEmptyEntries);
+            
+            foreach (var token in tokens)
+            {
+                // Skip operators
+                if (System.Array.Exists(ValidOperators, op => op == token))
+                    continue;
+                
+                // Skip numeric values (ports, addresses)
+                if (IsNumericOrAddress(token))
+                    continue;
+                
+                // Must be a valid keyword
+                if (!ValidKeywords.Contains(token))
+                    return false;
+            }
+            
+            return true;
+        }
+        
+        private static bool IsNumericOrAddress(string token)
+        {
+            // Numeric (port, protocol number)
+            if (int.TryParse(token, out _))
+                return true;
+            
+            // IPv4 address (e.g., 127.0.0.1)
+            if (System.Net.IPAddress.TryParse(token, out _))
+                return true;
+            
+            // Hex value (e.g., 0x1234)
+            if (token.StartsWith("0x", System.StringComparison.OrdinalIgnoreCase))
+                return true;
+            
+            return false;
+        }
+
 
         /// <summary>
         /// Command to toggle engine running state.
@@ -183,8 +306,8 @@ namespace NetShaper.App.ViewModels
             var ruleset = _rulesetBuilder.Build(RulesConfig);
             _pipeline.Swap(ruleset);
 
-            // TcpRst oneShot auto-disable: prevent continuous RST injection loops
-            if (RulesConfig.TcpRst.Enabled && RulesConfig.TcpRst.OneShot)
+            // TcpRst RstTriggered auto-disable: prevent continuous RST injection loops
+            if (RulesConfig.TcpRst.Enabled && RulesConfig.TcpRst.RstTriggered)
                 RulesConfig.TcpRst.Enabled = false;
         }
 
