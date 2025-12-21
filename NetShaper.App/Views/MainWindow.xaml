@@ -121,7 +121,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="Delay" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
                                            VerticalAlignment="Center" Margin="0,0,8,0" MinWidth="55"/>
-                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStyle}"
+                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStandardStyle}"
                                          Text="{Binding RulesConfig.Lag.DelayMs, UpdateSourceTrigger=PropertyChanged}"
                                          IsEnabled="{Binding RulesConfig.Lag.Enabled}"/>
                                 <TextBlock Grid.Column="4" Text="ms" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
@@ -162,12 +162,12 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="Min" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
                                            VerticalAlignment="Center" Margin="0,0,8,0" MinWidth="55"/>
-                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStyle}"
+                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStandardStyle}"
                                          Text="{Binding RulesConfig.Jitter.MinMs, UpdateSourceTrigger=PropertyChanged}"
                                          IsEnabled="{Binding RulesConfig.Jitter.Enabled}"/>
                                 <TextBlock Grid.Column="2" Text="Max" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
                                            VerticalAlignment="Center" Margin="12,0,8,0" MinWidth="55"/>
-                                <TextBox Grid.Column="3" Style="{StaticResource CompactInputStyle}"
+                                <TextBox Grid.Column="3" Style="{StaticResource CompactInputStandardStyle}"
                                          Text="{Binding RulesConfig.Jitter.MaxMs, UpdateSourceTrigger=PropertyChanged}"
                                          IsEnabled="{Binding RulesConfig.Jitter.Enabled}"/>
                                 <TextBlock Grid.Column="4" Text="ms" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
@@ -208,7 +208,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="Chance" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
                                            VerticalAlignment="Center" Margin="0,0,8,0" MinWidth="55"/>
-                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStyle}"
+                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputChanceStyle}"
                                          Text="{Binding RulesConfig.Drop.Chance, UpdateSourceTrigger=PropertyChanged}"
                                          IsEnabled="{Binding RulesConfig.Drop.Enabled}"/>
                                 <TextBlock Grid.Column="4" Text="%" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
@@ -249,12 +249,12 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="PPS" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
                                            VerticalAlignment="Center" Margin="0,0,8,0" MinWidth="55"/>
-                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStyle}" Width="55"
+                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStandardStyle}"
                                          Text="{Binding RulesConfig.Throttle.Pps, UpdateSourceTrigger=PropertyChanged}"
                                          IsEnabled="{Binding RulesConfig.Throttle.Enabled}"/>
                                 <TextBlock Grid.Column="2" Text="Timeframe" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
                                            VerticalAlignment="Center" Margin="12,0,8,0" MinWidth="55"/>
-                                <TextBox Grid.Column="3" Style="{StaticResource CompactInputStyle}" Width="55"
+                                <TextBox Grid.Column="3" Style="{StaticResource CompactInputStandardStyle}"
                                          Text="{Binding RulesConfig.Throttle.TimeframeMs, UpdateSourceTrigger=PropertyChanged}"
                                          IsEnabled="{Binding RulesConfig.Throttle.Enabled}"/>
                                 <TextBlock Grid.Column="4" Text="ms" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
@@ -266,7 +266,7 @@
                                               IsEnabled="{Binding RulesConfig.Throttle.Enabled}"/>
                                     <TextBlock Text="Chance" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
                                                VerticalAlignment="Center" Margin="12,0,8,0"/>
-                                    <TextBox Style="{StaticResource CompactInputStyle}"
+                                    <TextBox Style="{StaticResource CompactInputChanceStyle}"
                                              Text="{Binding RulesConfig.Throttle.Chance, UpdateSourceTrigger=PropertyChanged}"
                                              IsEnabled="{Binding RulesConfig.Throttle.Enabled}"/>
                                     <TextBlock Text="%" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
@@ -308,7 +308,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="Limit" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
                                            VerticalAlignment="Center" Margin="0,0,8,0" MinWidth="55"/>
-                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStyle}"
+                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStandardStyle}"
                                          Text="{Binding RulesConfig.Bandwidth.Limit, UpdateSourceTrigger=PropertyChanged}"
                                          IsEnabled="{Binding RulesConfig.Bandwidth.Enabled}"/>
                                 <ComboBox Grid.Column="3" Width="55" Margin="12,0,0,0"
@@ -358,12 +358,12 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="Count" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
                                            VerticalAlignment="Center" Margin="0,0,8,0" MinWidth="55"/>
-                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStyle}"
+                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStandardStyle}"
                                          Text="{Binding RulesConfig.Duplicate.Count, UpdateSourceTrigger=PropertyChanged}"
                                          IsEnabled="{Binding RulesConfig.Duplicate.Enabled}"/>
                                 <TextBlock Grid.Column="2" Text="Chance" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
                                            VerticalAlignment="Center" Margin="12,0,8,0" MinWidth="55"/>
-                                <TextBox Grid.Column="3" Style="{StaticResource CompactInputStyle}"
+                                <TextBox Grid.Column="3" Style="{StaticResource CompactInputChanceStyle}"
                                          Text="{Binding RulesConfig.Duplicate.Chance, UpdateSourceTrigger=PropertyChanged}"
                                          IsEnabled="{Binding RulesConfig.Duplicate.Enabled}"/>
                                 <TextBlock Grid.Column="4" Text="%" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
@@ -404,7 +404,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="Max Delay" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
                                            VerticalAlignment="Center" Margin="0,0,8,0" MinWidth="55"/>
-                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStyle}"
+                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStandardStyle}"
                                          Text="{Binding RulesConfig.OutOfOrder.MaxDelayMs, UpdateSourceTrigger=PropertyChanged}"
                                          IsEnabled="{Binding RulesConfig.OutOfOrder.Enabled}"/>
                                 <TextBlock Grid.Column="4" Text="ms" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
@@ -445,7 +445,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="Interval" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
                                            VerticalAlignment="Center" Margin="0,0,8,0" MinWidth="55"/>
-                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStyle}"
+                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStandardStyle}"
                                          Text="{Binding RulesConfig.Burst.IntervalMs, UpdateSourceTrigger=PropertyChanged}"
                                          IsEnabled="{Binding RulesConfig.Burst.Enabled}"/>
                                 <TextBlock Grid.Column="4" Text="ms" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
@@ -486,7 +486,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="Delay" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
                                            VerticalAlignment="Center" Margin="0,0,8,0" MinWidth="55"/>
-                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStyle}"
+                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStandardStyle}"
                                          Text="{Binding RulesConfig.AckDelay.DelayMs, UpdateSourceTrigger=PropertyChanged}"
                                          IsEnabled="{Binding RulesConfig.AckDelay.Enabled}"/>
                                 <TextBlock Grid.Column="4" Text="ms" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
@@ -527,12 +527,12 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="Pattern" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
                                            VerticalAlignment="Center" Margin="0,0,8,0" MinWidth="55"/>
-                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStyle}" Width="55"
+                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStandardStyle}"
                                          Text="{Binding RulesConfig.LossPattern.PatternHex, UpdateSourceTrigger=PropertyChanged}"
                                          IsEnabled="{Binding RulesConfig.LossPattern.Enabled}"/>
                                 <TextBlock Grid.Column="2" Text="Length" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
                                            VerticalAlignment="Center" Margin="12,0,8,0" MinWidth="55"/>
-                                <TextBox Grid.Column="3" Style="{StaticResource CompactInputStyle}"
+                                <TextBox Grid.Column="3" Style="{StaticResource CompactInputStandardStyle}"
                                          Text="{Binding RulesConfig.LossPattern.Length, UpdateSourceTrigger=PropertyChanged}"
                                          IsEnabled="{Binding RulesConfig.LossPattern.Enabled}"/>
                             </Grid>
@@ -571,7 +571,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="Chance" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
                                            VerticalAlignment="Center" Margin="0,0,8,0" MinWidth="55"/>
-                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStyle}"
+                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputChanceStyle}"
                                          Text="{Binding RulesConfig.Tamper.Chance, UpdateSourceTrigger=PropertyChanged}"
                                          IsEnabled="{Binding RulesConfig.Tamper.Enabled}"/>
                                 <TextBlock Grid.Column="4" Text="%" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
@@ -630,7 +630,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="MTU max" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
                                            VerticalAlignment="Center" Margin="0,0,8,0" MinWidth="55"/>
-                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStyle}" Width="55"
+                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStandardStyle}"
                                          Text="{Binding RulesConfig.MtuClamp.MaxSize, UpdateSourceTrigger=PropertyChanged}"
                                          IsEnabled="{Binding RulesConfig.MtuClamp.Enabled}"/>
                             </Grid>
@@ -669,7 +669,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="Window max" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
                                            VerticalAlignment="Center" Margin="0,0,8,0" MinWidth="55"/>
-                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStyle}" Width="65"
+                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStandardStyle}"
                                          Text="{Binding RulesConfig.WindowClamp.MaxWindow, UpdateSourceTrigger=PropertyChanged}"
                                          IsEnabled="{Binding RulesConfig.WindowClamp.Enabled}"/>
                             </Grid>
@@ -754,7 +754,7 @@
                                 </Button>
                                 <TextBlock Grid.Column="2" Text="Chance" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
                                            VerticalAlignment="Center" Margin="12,0,8,0" MinWidth="55"/>
-                                <TextBox Grid.Column="3" Style="{StaticResource CompactInputStyle}"
+                                <TextBox Grid.Column="3" Style="{StaticResource CompactInputChanceStyle}"
                                          Text="{Binding RulesConfig.TcpRst.Chance, UpdateSourceTrigger=PropertyChanged}"
                                          IsEnabled="{Binding RulesConfig.TcpRst.Enabled}"/>
                                 <TextBlock Grid.Column="4" Text="%" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
@@ -821,7 +821,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="Chance" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
                                            VerticalAlignment="Center" Margin="0,0,8,0" MinWidth="55"/>
-                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputStyle}"
+                                <TextBox Grid.Column="1" Style="{StaticResource CompactInputChanceStyle}"
                                          Text="{Binding RulesConfig.SynDrop.Chance, UpdateSourceTrigger=PropertyChanged}"
                                          IsEnabled="{Binding RulesConfig.SynDrop.Enabled}"/>
                                 <TextBlock Grid.Column="4" Text="%" Foreground="{DynamicResource ForegroundSecondaryBrush}" 
